@@ -1,0 +1,2786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XOOX Exchange Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a237e;
+            --secondary: #283593;
+            --accent: #536dfe;
+            --danger: #d32f2f;
+            --success: #388e3c;
+            --warning: #f57c00;
+            --dark: #121212;
+            --light: #f5f5f5;
+            --sidebar-width: 260px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0d1117;
+            color: #e6edf3;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark);
+            border-right: 1px solid #30363d;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 20px 30px;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 20px;
+        }
+        
+        .logo i {
+            color: var(--accent);
+            font-size: 28px;
+            margin-right: 15px;
+        }
+        
+        .logo h1 {
+            font-size: 22px;
+            color: #e6edf3;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: #c9d1d9;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background: rgba(56, 139, 253, 0.15);
+            color: #58a6ff;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .menu-item i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            width: calc(100% - var(--sidebar-width));
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 30px;
+        }
+        
+        .header h2 {
+            font-size: 28px;
+            color: #e6edf3;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #161b22;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #30363d;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        
+        .stat-card h3 {
+            color: #8b949e;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e6edf3;
+        }
+        
+        .stat-card .change {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .positive {
+            color: var(--success);
+        }
+        
+        .negative {
+            color: var(--danger);
+        }
+        
+        /* Tables */
+        .table-container {
+            background: #161b22;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .table-header h3 {
+            font-size: 20px;
+        }
+        
+        .search-box {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 10px 15px;
+            border-radius: 6px;
+            color: #e6edf3;
+            width: 250px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 15px 20px;
+            background: rgba(33, 38, 45, 0.6);
+            color: #8b949e;
+            font-weight: 600;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #30363d;
+            color: #c9d1d9;
+        }
+        
+        tr:hover {
+            background: rgba(56, 139, 253, 0.05);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 13px;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #3d5afe;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6e7681;
+            color: white;
+        }
+        
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* Status indicators */
+        .status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: rgba(56, 142, 60, 0.2);
+            color: var(--success);
+        }
+        
+        .status-pending {
+            background: rgba(245, 124, 0, 0.2);
+            color: var(--warning);
+        }
+        
+        .status-inactive {
+            background: rgba(211, 47, 47, 0.2);
+            color: var(--danger);
+        }
+        
+        .status-verified {
+            background: rgba(41, 98, 255, 0.2);
+            color: #2962ff;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+        }
+        
+        .tab.active {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+        }
+        
+        /* Tab content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: #161b22;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: #8b949e;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #c9d1d9;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+        }
+        
+        /* User ID badge */
+        .user-id {
+            background: rgba(56, 139, 253, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        /* Balance display */
+        .balance-inr {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .balance-xoox {
+            color: #2196f3;
+            font-weight: bold;
+        }
+        
+        /* XOOX Price display */
+        .xoox-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff9800;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar .logo h1, .sidebar .menu-item span {
+                display: none;
+            }
+            
+            .sidebar .logo {
+                justify-content: center;
+                padding: 20px 0;
+            }
+            
+            .sidebar .logo i {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+                width: calc(100% - 80px);
+            }
+            
+            .menu-item {
+                justify-content: center;
+                padding: 20px 0;
+            }
+            
+            .menu-item i {
+                margin-right: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-coins"></i>
+            <h1>XOOX Admin</h1>
+        </div>
+        
+        <a href="#" class="menu-item active" data-tab="dashboard">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+        
+        <a href="#" class="menu-item" data-tab="users">
+            <i class="fas fa-users"></i>
+            <span>User Management</span>
+        </a>
+        
+        <a href="#" class="menu-item" data-tab="transactions">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Transactions</span>
+        </a>
+        
+        <a href="#" class="menu-item" data-tab="trading">
+            <i class="fas fa-chart-line"></i>
+            <span>Trading</span>
+        </a>
+        
+        <a href="#" class="menu-item" data-tab="security">
+            <i class="fas fa-shield-alt"></i>
+            <span>Security</span>
+        </a>
+        
+        <a href="#" class="menu-item" data-tab="financial">
+            <i class="fas fa-wallet"></i>
+            <span>Financial</span>
+        </a>
+        
+        <a href="#" class="menu-item" data-tab="system">
+            <i class="fas fa-cog"></i>
+            <span>System Controls</span>
+        </a>
+        
+        <div style="padding: 25px 20px; margin-top: 30px; border-top: 1px solid #30363d;">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div>
+                    <div style="font-weight: bold;">Admin User</div>
+                    <div style="font-size: 12px; color: #8b949e;">Super Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2 id="page-title">XOOX Exchange Admin</h2>
+            <div class="user-info">
+                <div style="text-align: right;">
+                    <div style="font-weight: bold;">Exchange Status: <span style="color: var(--success);">Online</span></div>
+                    <div style="font-size: 12px; color: #8b949e;">XOOX Price: <span id="current-xoox-price">₹125.50</span></div>
+                </div>
+                <button class="btn btn-primary" id="broadcast-btn">
+                    <i class="fas fa-bullhorn"></i> Broadcast
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Stats Cards -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <div class="value" id="total-users">1,247</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 42 this week</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>24h Trading Volume</h3>
+                    <div class="value" id="24h-volume">₹4.28 Cr</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 12.5%</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>XOOX Price</h3>
+                    <div class="value xoox-price" id="xoox-price">₹125.50</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 2.34%</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Pending Actions</h3>
+                    <div class="value">47</div>
+                    <div class="change negative"><i class="fas fa-exclamation-circle"></i> 12 requires attention</div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Recent Activity</h3>
+                    <input type="text" class="search-box" placeholder="Search activity..." id="activity-search">
+                </div>
+                <table id="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User ID</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activity-body">
+                        <!-- Activity rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- System Health -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>System Health</h3>
+                    <button class="btn btn-secondary" id="refresh-health"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Load</th>
+                            <th>Uptime</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-server"></i> Trading Engine</td>
+                            <td><span class="status status-active">Operational</span></td>
+                            <td>34%</td>
+                            <td>99.98%</td>
+                            <td><button class="btn btn-sm btn-secondary">Restart</button></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-database"></i> Database</td>
+                            <td><span class="status status-active">Operational</span></td>
+                            <td>42%</td>
+                            <td>99.99%</td>
+                            <td><button class="btn btn-sm btn-secondary">Backup</button></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-wallet"></i> Wallet Service</td>
+                            <td><span class="status status-active">Operational</span></td>
+                            <td>28%</td>
+                            <td>99.97%</td>
+                            <td><button class="btn btn-sm btn-secondary">Check</button></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-shield-alt"></i> Security API</td>
+                            <td><span class="status status-active">Operational</span></td>
+                            <td>15%</td>
+                            <td>100%</td>
+                            <td><button class="btn btn-sm btn-secondary">Test</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div class="tabs">
+                <div class="tab active" data-subtab="all-users">All Users</div>
+                <div class="tab" data-subtab="kyc-pending">KYC Pending</div>
+                <div class="tab" data-subtab="suspended">Suspended Accounts</div>
+                <div class="tab" data-subtab="whales">Top Holders</div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>User Management</h3>
+                    <div>
+                        <input type="text" class="search-box" placeholder="Search users..." id="user-search">
+                        <button class="btn btn-primary" id="add-user-btn"><i class="fas fa-plus"></i> Add User</button>
+                        <button class="btn btn-secondary" id="export-users-btn"><i class="fas fa-download"></i> Export</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>XOOX Balance</th>
+                            <th>INR Balance</th>
+                            <th>KYC Status</th>
+                            <th>Account Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Users will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Transactions Tab -->
+        <div id="transactions" class="tab-content">
+            <div class="tabs">
+                <div class="tab active" data-subtab="all-tx">All Transactions</div>
+                <div class="tab" data-subtab="pending">Pending Withdrawals</div>
+                <div class="tab" data-subtab="deposits">Deposits</div>
+                <div class="tab" data-subtab="trades">Trades</div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Transaction History</h3>
+                    <div>
+                        <input type="text" class="search-box" placeholder="Search TX ID or User..." id="tx-search">
+                        <select class="form-control" style="width: 150px; display: inline-block;" id="tx-type-filter">
+                            <option value="all">All Types</option>
+                            <option value="deposit">Deposit</option>
+                            <option value="withdrawal">Withdrawal</option>
+                            <option value="trade">Trade</option>
+                        </select>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TX ID</th>
+                            <th>Type</th>
+                            <th>User ID</th>
+                            <th>Amount</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table-body">
+                        <!-- Transactions will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Trading Tab -->
+        <div id="trading" class="tab-content">
+            <div class="stats-container" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <h3>24h Volume</h3>
+                    <div class="value">₹4.28 Cr</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 12.5%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Open Orders</h3>
+                    <div class="value" id="open-orders-count">0</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 8.2%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>XOOX/INR Price</h3>
+                    <div class="value xoox-price">₹125.50</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 2.34%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Trading Fee</h3>
+                    <div class="value">0.15%</div>
+                    <div class="change negative"><i class="fas fa-arrow-down"></i> Updated</div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Open Orders (XOOX/INR)</h3>
+                    <button class="btn btn-primary" id="place-order-btn"><i class="fas fa-plus"></i> Place Order</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>User ID</th>
+                            <th>Type</th>
+                            <th>Price (₹)</th>
+                            <th>XOOX Amount</th>
+                            <th>Total (₹)</th>
+                            <th>Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="open-orders-body">
+                        <!-- Open orders will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Recent Trades (XOOX/INR)</h3>
+                    <button class="btn btn-secondary" id="refresh-trades"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Trade ID</th>
+                            <th>Buyer</th>
+                            <th>Seller</th>
+                            <th>Price (₹)</th>
+                            <th>XOOX Amount</th>
+                            <th>Total (₹)</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-trades-body">
+                        <!-- Recent trades will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Security Tab -->
+        <div id="security" class="tab-content">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Security Logs</h3>
+                    <button class="btn btn-danger" id="lockdown-btn"><i class="fas fa-lock"></i> Emergency Lockdown</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Event Type</th>
+                            <th>User ID</th>
+                            <th>IP Address</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="security-logs-body">
+                        <!-- Security logs will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Active Sessions</h3>
+                    <button class="btn btn-warning" id="terminate-all-btn"><i class="fas fa-sign-out-alt"></i> Terminate All</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>IP Address</th>
+                            <th>Device</th>
+                            <th>Login Time</th>
+                            <th>Last Activity</th>
+                            <th>2FA</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="active-sessions-body">
+                        <!-- Active sessions will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Financial Tab -->
+        <div id="financial" class="tab-content">
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Total Exchange Balance</h3>
+                    <div class="value">₹18.64 Cr</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 3.2%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>24h Fees Collected</h3>
+                    <div class="value">₹64,280</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> 8.5%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Withdrawals</h3>
+                    <div class="value">₹28.5 Lakh</div>
+                    <div class="change negative"><i class="fas fa-arrow-up"></i> 12 pending</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Cold Wallet Balance</h3>
+                    <div class="value">₹15.21 Cr</div>
+                    <div class="change positive"><i class="fas fa-shield-alt"></i> 81.6%</div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Asset Holdings</h3>
+                    <button class="btn btn-primary" id="export-financial-btn"><i class="fas fa-download"></i> Export Report</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Total Balance</th>
+                            <th>Hot Wallet</th>
+                            <th>Cold Wallet</th>
+                            <th>In Orders</th>
+                            <th>Available</th>
+                            <th>INR Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>XOOX Coin</strong></td>
+                            <td id="total-xoox-balance">1,485,250</td>
+                            <td id="hot-xoox">85,250</td>
+                            <td id="cold-xoox">1,400,000</td>
+                            <td id="xoox-in-orders">12,500</td>
+                            <td id="available-xoox">72,750</td>
+                            <td id="xoox-inr-value">₹18.64 Cr</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Indian Rupee (INR)</strong></td>
+                            <td>₹2.85 Cr</td>
+                            <td>₹85 Lakh</td>
+                            <td>₹2 Cr</td>
+                            <td>₹12.5 Lakh</td>
+                            <td>₹72.5 Lakh</td>
+                            <td>₹2.85 Cr</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Fee Collection (Last 7 Days)</h3>
+                    <select class="form-control" style="width: 150px;">
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                        <option>Last Quarter</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Trading Fees</th>
+                            <th>Withdrawal Fees</th>
+                            <th>Deposit Fees</th>
+                            <th>Total Fees</th>
+                            <th>Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fee-collection-body">
+                        <!-- Fee collection will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- System Controls Tab -->
+        <div id="system" class="tab-content">
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>System Status</h3>
+                    <div class="value" style="color: var(--success);" id="system-status">Online</div>
+                    <div class="change positive">All systems operational</div>
+                    <button class="btn btn-warning" style="margin-top: 15px; width: 100%;" id="maintenance-toggle">
+                        <i class="fas fa-tools"></i> Toggle Maintenance
+                    </button>
+                </div>
+                <div class="stat-card">
+                    <h3>API Status</h3>
+                    <div class="value" style="color: var(--success);">Active</div>
+                    <div class="change positive">2,847 requests/min</div>
+                    <button class="btn btn-secondary" style="margin-top: 15px; width: 100%;" id="api-keys-btn">
+                        <i class="fas fa-key"></i> Manage API Keys
+                    </button>
+                </div>
+                <div class="stat-card">
+                    <h3>Backup Status</h3>
+                    <div class="value" style="color: var(--success);">Updated</div>
+                    <div class="change positive">Last: 2 hours ago</div>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" id="run-backup-btn">
+                        <i class="fas fa-database"></i> Run Backup
+                    </button>
+                </div>
+                <div class="stat-card">
+                    <h3>Uptime</h3>
+                    <div class="value">99.98%</div>
+                    <div class="change positive">30 days average</div>
+                    <button class="btn btn-secondary" style="margin-top: 15px; width: 100%;" id="view-analytics-btn">
+                        <i class="fas fa-chart-bar"></i> View Analytics
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>System Configuration</h3>
+                    <button class="btn btn-success" id="save-config-btn"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+                <div style="padding: 20px;">
+                    <div class="form-group">
+                        <label>Trading Fees (%)</label>
+                        <input type="range" min="0" max="1" step="0.01" value="0.15" class="form-control" id="fee-slider">
+                        <div style="margin-top: 5px;">
+                            Current: <span id="fee-value">0.15%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Withdrawal Limits (INR)</label>
+                        <div style="display: flex; gap: 15px;">
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px;">Daily Limit</label>
+                                <input type="number" class="form-control" id="daily-limit" value="50000">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px;">Monthly Limit</label>
+                                <input type="number" class="form-control" id="monthly-limit" value="200000">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px;">Per Transaction</label>
+                                <input type="number" class="form-control" id="per-tx-limit" value="25000">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>XOOX Price Control (₹)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" class="form-control" id="xoox-price-input" value="125.50" step="0.01">
+                            <button class="btn btn-primary" id="update-price-btn">Update Price</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Announcement</label>
+                        <textarea class="form-control" id="announcement-text" rows="3" placeholder="Enter system announcement...">Scheduled maintenance on October 10, 2023 from 02:00 to 04:00 UTC. Trading will be temporarily suspended.</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enable-registrations" checked> Enable new user registrations
+                        </label>
+                        <label style="margin-left: 20px;">
+                            <input type="checkbox" id="enable-withdrawals" checked> Enable withdrawals
+                        </label>
+                        <label style="margin-left: 20px;">
+                            <input type="checkbox" id="maintenance-mode"> Enable maintenance mode
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="user-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-user-title">User Details</h3>
+                <button class="close-modal" onclick="closeModal('user-details-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="user-details-content">
+                    <!-- User details will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="add-user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New User</h3>
+                <button class="close-modal" onclick="closeModal('add-user-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" id="new-user-name" placeholder="Enter full name">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" class="form-control" id="new-user-email" placeholder="Enter email address">
+                </div>
+                
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" class="form-control" id="new-user-phone" placeholder="Enter phone number">
+                </div>
+                
+                <div class="form-group">
+                    <label>Initial XOOX Balance</label>
+                    <input type="number" class="form-control" id="new-user-xoox" value="0" step="0.0001">
+                </div>
+                
+                <div class="form-group">
+                    <label>Initial INR Balance</label>
+                    <input type="number" class="form-control" id="new-user-inr" value="0" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label>KYC Status</label>
+                    <select class="form-control" id="new-user-kyc">
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%;" id="create-user-btn">Create User</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="adjust-balance-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adjust User Balance</h3>
+                <button class="close-modal" onclick="closeModal('adjust-balance-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" class="form-control" id="adjust-user-id" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Asset</label>
+                    <select class="form-control" id="adjust-asset">
+                        <option value="XOOX">XOOX Coin</option>
+                        <option value="INR">Indian Rupee (INR)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Action</label>
+                    <select class="form-control" id="adjust-action">
+                        <option value="deposit">Deposit (Add to user)</option>
+                        <option value="withdraw">Withdraw (Remove from user)</option>
+                        <option value="set">Set (Specific amount)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" class="form-control" id="adjust-amount" placeholder="Enter amount" step="0.0001">
+                </div>
+                
+                <div class="form-group">
+                    <label>Reason (Optional)</label>
+                    <input type="text" class="form-control" id="adjust-reason" placeholder="Enter reason for adjustment">
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%;" id="apply-adjustment-btn">Apply Adjustment</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="broadcast-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Send Broadcast Message</h3>
+                <button class="close-modal" onclick="closeModal('broadcast-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Message Type</label>
+                    <select class="form-control" id="broadcast-type">
+                        <option>Announcement</option>
+                        <option>Warning</option>
+                        <option>Maintenance Alert</option>
+                        <option>System Update</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" class="form-control" id="broadcast-title" placeholder="Enter message title">
+                </div>
+                
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea class="form-control" id="broadcast-message" rows="5" placeholder="Enter broadcast message..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Target Audience</label>
+                    <div>
+                        <label><input type="checkbox" id="broadcast-all" checked> All Users</label>
+                        <label style="margin-left: 15px;"><input type="checkbox" id="broadcast-verified"> Verified Users Only</label>
+                        <label style="margin-left: 15px;"><input type="checkbox" id="broadcast-unverified"> Unverified Users Only</label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%;" id="send-broadcast-btn">Send Broadcast</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="place-order-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Place New Order (XOOX/INR)</h3>
+                <button class="close-modal" onclick="closeModal('place-order-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Order Type</label>
+                    <select class="form-control" id="order-type">
+                        <option value="buy">Buy XOOX</option>
+                        <option value="sell">Sell XOOX</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" class="form-control" id="order-user-id" placeholder="Enter user ID (e.g., 00001)">
+                </div>
+                
+                <div class="form-group">
+                    <label>Price per XOOX (₹)</label>
+                    <input type="number" class="form-control" id="order-price" value="125.50" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label>XOOX Amount</label>
+                    <input type="number" class="form-control" id="order-amount" placeholder="Enter XOOX amount" step="0.0001">
+                </div>
+                
+                <div class="form-group">
+                    <label>Total Value (₹)</label>
+                    <input type="text" class="form-control" id="order-total" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Order Type</label>
+                    <select class="form-control" id="order-execution">
+                        <option value="limit">Limit Order</option>
+                        <option value="market">Market Order</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%;" id="submit-order-btn">Place Order</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ==================== DATA STORAGE ====================
+        let users = [];
+        let transactions = [];
+        let orders = [];
+        let trades = [];
+        let securityLogs = [];
+        let activeSessions = [];
+        let feeCollection = [];
+        let activityLogs = [];
+        let nextUserId = 100;
+        let nextTxId = 1000;
+        let nextOrderId = 5000;
+        let nextTradeId = 10000;
+        let xooxPrice = 125.50;
+        let tradingFee = 0.15;
+        let exchangeBalanceXOOX = 1485250;
+        let exchangeBalanceINR = 28500000;
+        
+        // ==================== INITIAL DATA SETUP ====================
+        function initializeData() {
+            // Initialize mock users (00001 to 00100)
+            for (let i = 1; i <= 100; i++) {
+                const userId = i.toString().padStart(5, '0');
+                const names = ['Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Singh', 'Vikram Reddy', 
+                              'Anjali Mehta', 'Rahul Verma', 'Pooja Desai', 'Sanjay Nair', 'Kavita Joshi',
+                              'Arun Gupta', 'Deepa Iyer', 'Mohan Das', 'Sunita Choudhury', 'Ravi Menon'];
+                const emails = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'protonmail.com'];
+                const name = names[Math.floor(Math.random() * names.length)];
+                const email = `${name.toLowerCase().replace(' ', '.')}@${emails[Math.floor(Math.random() * emails.length)]}`;
+                const xooxBalance = parseFloat((Math.random() * 10000).toFixed(4));
+                const inrBalance = parseFloat((Math.random() * 500000).toFixed(2));
+                const kycStatus = Math.random() > 0.3 ? 'verified' : (Math.random() > 0.5 ? 'pending' : 'rejected');
+                const accountStatus = Math.random() > 0.1 ? 'active' : 'suspended';
+                const joinedDate = new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
+                
+                users.push({
+                    id: userId,
+                    name: name,
+                    email: email,
+                    phone: `+91${Math.floor(9000000000 + Math.random() * 1000000000)}`,
+                    xooxBalance: xooxBalance,
+                    inrBalance: inrBalance,
+                    kycStatus: kycStatus,
+                    accountStatus: accountStatus,
+                    joined: joinedDate.toISOString().split('T')[0],
+                    lastLogin: new Date().toISOString(),
+                    ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
+                });
+            }
+            nextUserId = 101;
+            
+            // Initialize transactions
+            for (let i = 0; i < 50; i++) {
+                const userId = Math.floor(Math.random() * 100) + 1;
+                const types = ['deposit', 'withdrawal', 'trade'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                let amount, details;
+                
+                if (type === 'deposit') {
+                    amount = parseFloat((Math.random() * 100000).toFixed(2));
+                    details = 'INR Deposit via UPI';
+                } else if (type === 'withdrawal') {
+                    amount = parseFloat((Math.random() * 50000).toFixed(2));
+                    details = 'INR Withdrawal to Bank';
+                } else {
+                    amount = parseFloat((Math.random() * 1000).toFixed(4));
+                    details = 'XOOX/INR Trade';
+                }
+                
+                const statuses = ['completed', 'pending', 'failed'];
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000);
+                
+                transactions.push({
+                    id: `TX-${1000 + i}`,
+                    type: type,
+                    userId: userId.toString().padStart(5, '0'),
+                    amount: amount,
+                    asset: type === 'trade' ? 'XOOX' : 'INR',
+                    details: details,
+                    status: status,
+                    timestamp: timestamp.toISOString(),
+                    fee: parseFloat((amount * 0.001).toFixed(2))
+                });
+            }
+            nextTxId = 1050;
+            
+            // Initialize orders
+            for (let i = 0; i < 15; i++) {
+                const userId = Math.floor(Math.random() * 100) + 1;
+                const type = Math.random() > 0.5 ? 'buy' : 'sell';
+                const price = parseFloat((xooxPrice * (0.95 + Math.random() * 0.1)).toFixed(2));
+                const amount = parseFloat((Math.random() * 100).toFixed(4));
+                const total = parseFloat((price * amount).toFixed(2));
+                const timestamp = new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000);
+                
+                orders.push({
+                    id: `ORD-${5000 + i}`,
+                    userId: userId.toString().padStart(5, '0'),
+                    type: type,
+                    price: price,
+                    amount: amount,
+                    total: total,
+                    status: 'open',
+                    timestamp: timestamp.toISOString(),
+                    filled: 0
+                });
+            }
+            nextOrderId = 5015;
+            
+            // Initialize trades
+            for (let i = 0; i < 30; i++) {
+                const buyerId = Math.floor(Math.random() * 100) + 1;
+                let sellerId;
+                do {
+                    sellerId = Math.floor(Math.random() * 100) + 1;
+                } while (sellerId === buyerId);
+                
+                const price = parseFloat((xooxPrice * (0.95 + Math.random() * 0.1)).toFixed(2));
+                const amount = parseFloat((Math.random() * 50).toFixed(4));
+                const total = parseFloat((price * amount).toFixed(2));
+                const timestamp = new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000);
+                
+                trades.push({
+                    id: `TRD-${10000 + i}`,
+                    buyerId: buyerId.toString().padStart(5, '0'),
+                    sellerId: sellerId.toString().padStart(5, '0'),
+                    price: price,
+                    amount: amount,
+                    total: total,
+                    fee: parseFloat((total * tradingFee / 100).toFixed(2)),
+                    timestamp: timestamp.toISOString()
+                });
+            }
+            nextTradeId = 10030;
+            
+            // Initialize security logs
+            for (let i = 0; i < 40; i++) {
+                const userId = Math.floor(Math.random() * 100) + 1;
+                const eventTypes = ['login', 'failed_login', 'logout', 'password_change', '2fa_enabled'];
+                const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                const statuses = ['success', 'failed', 'blocked'];
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const timestamp = new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000);
+                const locations = ['Mumbai, IN', 'Delhi, IN', 'Bangalore, IN', 'Chennai, IN', 'Kolkata, IN'];
+                const location = locations[Math.floor(Math.random() * locations.length)];
+                
+                securityLogs.push({
+                    id: `SEC-${2000 + i}`,
+                    timestamp: timestamp.toISOString(),
+                    eventType: eventType,
+                    userId: userId.toString().padStart(5, '0'),
+                    ipAddress: `103.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+                    location: location,
+                    status: status,
+                    details: eventType === 'failed_login' ? '3 failed attempts' : 'Normal operation'
+                });
+            }
+            
+            // Initialize active sessions
+            for (let i = 0; i < 8; i++) {
+                const userId = Math.floor(Math.random() * 100) + 1;
+                const devices = ['Chrome on Windows', 'Firefox on Mac', 'Safari on iPhone', 'Android App'];
+                const device = devices[Math.floor(Math.random() * devices.length)];
+                const loginTime = new Date(Date.now() - Math.random() * 60 * 60 * 1000);
+                
+                activeSessions.push({
+                    userId: userId.toString().padStart(5, '0'),
+                    ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+                    device: device,
+                    loginTime: loginTime.toISOString(),
+                    lastActivity: new Date().toISOString(),
+                    twoFA: Math.random() > 0.3 ? 'enabled' : 'disabled'
+                });
+            }
+            
+            // Initialize fee collection
+            const today = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const tradingFees = parseFloat((Math.random() * 10000).toFixed(2));
+                const withdrawalFees = parseFloat((Math.random() * 5000).toFixed(2));
+                const depositFees = parseFloat((Math.random() * 2000).toFixed(2));
+                const totalFees = tradingFees + withdrawalFees + depositFees;
+                
+                feeCollection.push({
+                    date: date.toISOString().split('T')[0],
+                    tradingFees: tradingFees,
+                    withdrawalFees: withdrawalFees,
+                    depositFees: depositFees,
+                    totalFees: totalFees,
+                    growth: i > 0 ? parseFloat((Math.random() * 20 - 10).toFixed(1)) : 0
+                });
+            }
+            
+            // Initialize activity logs
+            for (let i = 0; i < 20; i++) {
+                const userId = Math.floor(Math.random() * 100) + 1;
+                const actions = ['Login', 'Trade', 'Deposit', 'Withdrawal', 'Order Placed'];
+                const action = actions[Math.floor(Math.random() * actions.length)];
+                const timestamp = new Date(Date.now() - Math.random() * 60 * 60 * 1000);
+                let details, amount = 0;
+                
+                switch(action) {
+                    case 'Login':
+                        details = 'Successful login';
+                        break;
+                    case 'Trade':
+                        amount = parseFloat((Math.random() * 50000).toFixed(2));
+                        details = `Traded ${parseFloat((Math.random() * 100).toFixed(4))} XOOX`;
+                        break;
+                    case 'Deposit':
+                        amount = parseFloat((Math.random() * 100000).toFixed(2));
+                        details = 'INR Deposit via Bank Transfer';
+                        break;
+                    case 'Withdrawal':
+                        amount = parseFloat((Math.random() * 50000).toFixed(2));
+                        details = 'INR Withdrawal Request';
+                        break;
+                    case 'Order Placed':
+                        amount = parseFloat((Math.random() * 25000).toFixed(2));
+                        details = 'Limit order placed for XOOX/INR';
+                        break;
+                }
+                
+                activityLogs.push({
+                    timestamp: timestamp.toISOString(),
+                    userId: userId.toString().padStart(5, '0'),
+                    action: action,
+                    details: details,
+                    amount: amount
+                });
+            }
+            
+            updateAllDisplays();
+        }
+        
+        // ==================== DISPLAY FUNCTIONS ====================
+        function updateAllDisplays() {
+            updateUsersTable();
+            updateTransactionsTable();
+            updateOpenOrders();
+            updateRecentTrades();
+            updateSecurityLogs();
+            updateActiveSessions();
+            updateFeeCollection();
+            updateActivityLogs();
+            updateFinancialStats();
+            updateDashboardStats();
+        }
+        
+        function updateUsersTable() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="user-id">${user.id}</span></td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td class="balance-xoox">${user.xooxBalance.toFixed(4)} XOOX</td>
+                    <td class="balance-inr">₹${user.inrBalance.toFixed(2)}</td>
+                    <td><span class="status status-${user.kycStatus}">${user.kycStatus.charAt(0).toUpperCase() + user.kycStatus.slice(1)}</span></td>
+                    <td><span class="status status-${user.accountStatus}">${user.accountStatus.charAt(0).toUpperCase() + user.accountStatus.slice(1)}</span></td>
+                    <td>${user.joined}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn btn-sm btn-primary" onclick="viewUserDetails('${user.id}')"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-sm btn-warning" onclick="adjustUserBalance('${user.id}')"><i class="fas fa-rupee-sign"></i></button>
+                            <button class="btn btn-sm ${user.accountStatus === 'active' ? 'btn-danger' : 'btn-success'}" onclick="toggleUserStatus('${user.id}')">
+                                <i class="fas fa-${user.accountStatus === 'active' ? 'lock' : 'unlock'}"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('total-users').textContent = users.length.toLocaleString();
+        }
+        
+        function updateTransactionsTable() {
+            const tbody = document.getElementById('transactions-table-body');
+            tbody.innerHTML = '';
+            
+            transactions.slice(-20).reverse().forEach(tx => {
+                const date = new Date(tx.timestamp);
+                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const dateStr = date.toLocaleDateString();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="user-id">${tx.id}</span></td>
+                    <td><span class="status status-${tx.type}">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</span></td>
+                    <td><span class="user-id">${tx.userId}</span></td>
+                    <td>${tx.asset === 'INR' ? '₹' : ''}${tx.amount.toLocaleString()} ${tx.asset}</td>
+                    <td>${tx.details}</td>
+                    <td><span class="status status-${tx.status}">${tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}</span></td>
+                    <td>${dateStr} ${timeStr}</td>
+                    <td>
+                        <div class="action-btns">
+                            ${tx.status === 'pending' && tx.type === 'withdrawal' ? 
+                                `<button class="btn btn-sm btn-success" onclick="processTransaction('${tx.id}', 'approve')">Approve</button>
+                                 <button class="btn btn-sm btn-danger" onclick="processTransaction('${tx.id}', 'reject')">Reject</button>` :
+                                `<button class="btn btn-sm btn-primary" onclick="viewTransaction('${tx.id}')">Details</button>`
+                            }
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateOpenOrders() {
+            const tbody = document.getElementById('open-orders-body');
+            tbody.innerHTML = '';
+            
+            const openOrders = orders.filter(order => order.status === 'open');
+            document.getElementById('open-orders-count').textContent = openOrders.length;
+            
+            openOrders.slice(-10).reverse().forEach(order => {
+                const date = new Date(order.timestamp);
+                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="user-id">${order.id}</span></td>
+                    <td><span class="user-id">${order.userId}</span></td>
+                    <td><span style="color: ${order.type === 'buy' ? 'var(--success)' : 'var(--danger)'};">${order.type.toUpperCase()}</span></td>
+                    <td>₹${order.price.toFixed(2)}</td>
+                    <td>${order.amount.toFixed(4)}</td>
+                    <td>₹${order.total.toFixed(2)}</td>
+                    <td>${timeStr}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="cancelOrder('${order.id}')">Cancel</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateRecentTrades() {
+            const tbody = document.getElementById('recent-trades-body');
+            tbody.innerHTML = '';
+            
+            trades.slice(-10).reverse().forEach(trade => {
+                const date = new Date(trade.timestamp);
+                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const dateStr = date.toLocaleDateString();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="user-id">${trade.id}</span></td>
+                    <td><span class="user-id">${trade.buyerId}</span></td>
+                    <td><span class="user-id">${trade.sellerId}</span></td>
+                    <td>₹${trade.price.toFixed(2)}</td>
+                    <td>${trade.amount.toFixed(4)}</td>
+                    <td>₹${trade.total.toFixed(2)}</td>
+                    <td>${dateStr} ${timeStr}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateSecurityLogs() {
+            const tbody = document.getElementById('security-logs-body');
+            tbody.innerHTML = '';
+            
+            securityLogs.slice(-15).reverse().forEach(log => {
+                const date = new Date(log.timestamp);
+                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const dateStr = date.toLocaleDateString();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dateStr} ${timeStr}</td>
+                    <td><span class="status status-${log.eventType === 'failed_login' ? 'inactive' : 'active'}">${log.eventType.replace('_', ' ').toUpperCase()}</span></td>
+                    <td><span class="user-id">${log.userId}</span></td>
+                    <td>${log.ipAddress}</td>
+                    <td>${log.location}</td>
+                    <td><span class="status status-${log.status}">${log.status.toUpperCase()}</span></td>
+                    <td>${log.details}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateActiveSessions() {
+            const tbody = document.getElementById('active-sessions-body');
+            tbody.innerHTML = '';
+            
+            activeSessions.forEach(session => {
+                const loginTime = new Date(session.loginTime);
+                const lastActivity = new Date(session.lastActivity);
+                const loginStr = loginTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const activityStr = lastActivity.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="user-id">${session.userId}</span></td>
+                    <td>${session.ipAddress}</td>
+                    <td>${session.device}</td>
+                    <td>${loginStr}</td>
+                    <td>${activityStr}</td>
+                    <td><span class="status status-${session.twoFA === 'enabled' ? 'verified' : 'inactive'}">${session.twoFA.toUpperCase()}</span></td>
+                    <td><button class="btn btn-sm btn-danger" onclick="terminateSession('${session.userId}')">Terminate</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateFeeCollection() {
+            const tbody = document.getElementById('fee-collection-body');
+            tbody.innerHTML = '';
+            
+            feeCollection.forEach(day => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${day.date}</td>
+                    <td>₹${day.tradingFees.toFixed(2)}</td>
+                    <td>₹${day.withdrawalFees.toFixed(2)}</td>
+                    <td>₹${day.depositFees.toFixed(2)}</td>
+                    <td><strong>₹${day.totalFees.toFixed(2)}</strong></td>
+                    <td><span class="${day.growth >= 0 ? 'positive' : 'negative'}">${day.growth >= 0 ? '+' : ''}${day.growth}%</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateActivityLogs() {
+            const tbody = document.getElementById('activity-body');
+            tbody.innerHTML = '';
+            
+            activityLogs.slice(-10).reverse().forEach(activity => {
+                const date = new Date(activity.timestamp);
+                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${timeStr}</td>
+                    <td><span class="user-id">${activity.userId}</span></td>
+                    <td><span class="status status-${activity.action === 'Login' ? 'active' : 'verified'}">${activity.action}</span></td>
+                    <td>${activity.details}</td>
+                    <td>${activity.amount > 0 ? '₹' + activity.amount.toFixed(2) : '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateFinancialStats() {
+            // Calculate total XOOX in exchange
+            let totalXOOX = 0;
+            let hotXOOX = 0;
+            let xooxInOrders = 0;
+            
+            // User balances
+            users.forEach(user => {
+                totalXOOX += user.xooxBalance;
+            });
+            
+            // Orders
+            orders.forEach(order => {
+                if (order.status === 'open') {
+                    xooxInOrders += (order.type === 'sell' ? order.amount : 0);
+                }
+            });
+            
+            hotXOOX = totalXOOX * 0.05; // 5% in hot wallet
+            const coldXOOX = totalXOOX - hotXOOX - xooxInOrders;
+            const availableXOOX = hotXOOX - xooxInOrders;
+            
+            // Update display
+            document.getElementById('total-xoox-balance').textContent = totalXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('hot-xoox').textContent = hotXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('cold-xoox').textContent = coldXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('xoox-in-orders').textContent = xooxInOrders.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('available-xoox').textContent = availableXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('xoox-inr-value').textContent = `₹${(totalXOOX * xooxPrice).toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        }
+        
+        function updateDashboardStats() {
+            // Update XOOX price everywhere
+            const priceElements = document.querySelectorAll('#xoox-price, .xoox-price, #current-xoox-price');
+            priceElements.forEach(el => {
+                el.textContent = `₹${xooxPrice.toFixed(2)}`;
+            });
+            
+            // Update 24h volume
+            const volume24h = trades.reduce((sum, trade) => {
+                const tradeDate = new Date(trade.timestamp);
+                const now = new Date();
+                if ((now - tradeDate) <= 24 * 60 * 60 * 1000) {
+                    return sum + trade.total;
+                }
+                return sum;
+            }, 0);
+            
+            document.getElementById('24h-volume').textContent = `₹${(volume24h / 10000000).toFixed(2)} Cr`;
+        }
+        
+        // ==================== USER FUNCTIONS ====================
+        function viewUserDetails(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('modal-user-title').textContent = `User Details: ${user.id}`;
+            
+            const totalValue = (user.xooxBalance * xooxPrice) + user.inrBalance;
+            
+            document.getElementById('user-details-content').innerHTML = `
+                <div style="display: flex; margin-bottom: 20px;">
+                    <div style="flex: 1; padding-right: 20px;">
+                        <h4>Account Information</h4>
+                        <p><strong>User ID:</strong> <span class="user-id">${user.id}</span></p>
+                        <p><strong>Name:</strong> ${user.name}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Phone:</strong> ${user.phone}</p>
+                        <p><strong>Joined:</strong> ${user.joined}</p>
+                        <p><strong>Last Login:</strong> ${new Date(user.lastLogin).toLocaleString()}</p>
+                        <p><strong>IP Address:</strong> ${user.ipAddress}</p>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4>Balance Summary</h4>
+                        <p><strong>Total Portfolio Value:</strong> <span class="balance-inr">₹${totalValue.toFixed(2)}</span></p>
+                        <p><strong>XOOX Balance:</strong> <span class="balance-xoox">${user.xooxBalance.toFixed(4)} XOOX</span> (₹${(user.xooxBalance * xooxPrice).toFixed(2)})</p>
+                        <p><strong>INR Balance:</strong> <span class="balance-inr">₹${user.inrBalance.toFixed(2)}</span></p>
+                        <p><strong>KYC Status:</strong> <span class="status status-${user.kycStatus}">${user.kycStatus.charAt(0).toUpperCase() + user.kycStatus.slice(1)}</span></p>
+                        <p><strong>Account Status:</strong> <span class="status status-${user.accountStatus}">${user.accountStatus.charAt(0).toUpperCase() + user.accountStatus.slice(1)}</span></p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Quick Actions</label>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="adjustUserBalance('${user.id}')">Adjust Balance</button>
+                        <button class="btn btn-warning" onclick="editUserKYC('${user.id}')">Edit KYC Status</button>
+                        <button class="btn btn-${user.accountStatus === 'active' ? 'danger' : 'success'}" onclick="toggleUserStatus('${user.id}')">
+                            ${user.accountStatus === 'active' ? 'Freeze Account' : 'Activate Account'}
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewUserTransactions('${user.id}')">View Transactions</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <h4>Recent Activity</h4>
+                    <div style="max-height: 200px; overflow-y: auto; background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid #30363d;">
+                        ${getUserActivityHTML(user.id)}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('user-details-modal').style.display = 'flex';
+        }
+        
+        function getUserActivityHTML(userId) {
+            const userActivities = activityLogs.filter(activity => activity.userId === userId);
+            if (userActivities.length === 0) return '<p style="color: #8b949e; text-align: center;">No recent activity</p>';
+            
+            return userActivities.slice(-5).reverse().map(activity => {
+                const date = new Date(activity.timestamp);
+                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                return `
+                    <div style="padding: 5px 0; border-bottom: 1px solid #30363d;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>${activity.action}</span>
+                            <span style="color: #8b949e; font-size: 12px;">${timeStr}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #8b949e;">${activity.details}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function adjustUserBalance(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('adjust-user-id').value = user.id;
+            document.getElementById('adjust-balance-modal').style.display = 'flex';
+        }
+        
+        function applyAdjustment() {
+            const userId = document.getElementById('adjust-user-id').value;
+            const asset = document.getElementById('adjust-asset').value;
+            const action = document.getElementById('adjust-action').value;
+            const amount = parseFloat(document.getElementById('adjust-amount').value);
+            const reason = document.getElementById('adjust-reason').value;
+            
+            if (!userId || isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) {
+                alert('User not found');
+                return;
+            }
+            
+            let logMessage = '';
+            
+            if (asset === 'XOOX') {
+                if (action === 'deposit') {
+                    user.xooxBalance += amount;
+                    logMessage = `Admin deposited ${amount.toFixed(4)} XOOX to user ${userId}`;
+                    
+                    // Update exchange balance
+                    exchangeBalanceXOOX += amount;
+                } else if (action === 'withdraw') {
+                    if (user.xooxBalance < amount) {
+                        alert('Insufficient XOOX balance');
+                        return;
+                    }
+                    user.xooxBalance -= amount;
+                    logMessage = `Admin withdrew ${amount.toFixed(4)} XOOX from user ${userId}`;
+                    
+                    // Update exchange balance
+                    exchangeBalanceXOOX -= amount;
+                } else if (action === 'set') {
+                    logMessage = `Admin set XOOX balance from ${user.xooxBalance.toFixed(4)} to ${amount.toFixed(4)} for user ${userId}`;
+                    user.xooxBalance = amount;
+                }
+            } else if (asset === 'INR') {
+                if (action === 'deposit') {
+                    user.inrBalance += amount;
+                    logMessage = `Admin deposited ₹${amount.toFixed(2)} to user ${userId}`;
+                    
+                    // Update exchange balance
+                    exchangeBalanceINR += amount;
+                } else if (action === 'withdraw') {
+                    if (user.inrBalance < amount) {
+                        alert('Insufficient INR balance');
+                        return;
+                    }
+                    user.inrBalance -= amount;
+                    logMessage = `Admin withdrew ₹${amount.toFixed(2)} from user ${userId}`;
+                    
+                    // Update exchange balance
+                    exchangeBalanceINR -= amount;
+                } else if (action === 'set') {
+                    logMessage = `Admin set INR balance from ₹${user.inrBalance.toFixed(2)} to ₹${amount.toFixed(2)} for user ${userId}`;
+                    user.inrBalance = amount;
+                }
+            }
+            
+            if (reason) {
+                logMessage += ` - Reason: ${reason}`;
+            }
+            
+            // Add transaction record
+            const txId = `TX-${nextTxId++}`;
+            transactions.push({
+                id: txId,
+                type: 'adjustment',
+                userId: userId,
+                amount: amount,
+                asset: asset,
+                details: `Admin adjustment: ${action} ${asset}${reason ? ` (${reason})` : ''}`,
+                status: 'completed',
+                timestamp: new Date().toISOString(),
+                fee: 0
+            });
+            
+            // Add activity log
+            activityLogs.push({
+                timestamp: new Date().toISOString(),
+                userId: userId,
+                action: 'Balance Adjustment',
+                details: logMessage,
+                amount: amount
+            });
+            
+            // Add security log
+            securityLogs.push({
+                id: `SEC-${securityLogs.length + 2000}`,
+                timestamp: new Date().toISOString(),
+                eventType: 'balance_adjustment',
+                userId: userId,
+                ipAddress: 'ADMIN',
+                location: 'Admin Panel',
+                status: 'success',
+                details: logMessage
+            });
+            
+            alert(`Balance adjusted successfully! Transaction ID: ${txId}`);
+            closeModal('adjust-balance-modal');
+            updateAllDisplays();
+        }
+        
+        function toggleUserStatus(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            const newStatus = user.accountStatus === 'active' ? 'suspended' : 'active';
+            const confirmMessage = newStatus === 'suspended' ? 
+                `Freeze account ${userId}? User will not be able to trade, deposit, or withdraw.` :
+                `Activate account ${userId}? User will regain full access.`;
+            
+            if (confirm(confirmMessage)) {
+                user.accountStatus = newStatus;
+                
+                // Add security log
+                securityLogs.push({
+                    id: `SEC-${securityLogs.length + 2000}`,
+                    timestamp: new Date().toISOString(),
+                    eventType: 'account_status_change',
+                    userId: userId,
+                    ipAddress: 'ADMIN',
+                    location: 'Admin Panel',
+                    status: 'success',
+                    details: `Account ${newStatus === 'suspended' ? 'frozen' : 'activated'} by admin`
+                });
+                
+                // Add activity log
+                activityLogs.push({
+                    timestamp: new Date().toISOString(),
+                    userId: userId,
+                    action: 'Account Status',
+                    details: `Account ${newStatus === 'suspended' ? 'frozen' : 'activated'} by admin`,
+                    amount: 0
+                });
+                
+                alert(`Account ${userId} has been ${newStatus === 'suspended' ? 'frozen' : 'activated'}!`);
+                updateAllDisplays();
+                
+                // If viewing user details, update the modal
+                if (document.getElementById('user-details-modal').style.display === 'flex') {
+                    viewUserDetails(userId);
+                }
+            }
+        }
+        
+        function editUserKYC(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            const newStatus = prompt(`Change KYC status for user ${userId} (current: ${user.kycStatus})\nEnter: verified, pending, or rejected:`, user.kycStatus);
+            
+            if (newStatus && ['verified', 'pending', 'rejected'].includes(newStatus.toLowerCase())) {
+                const oldStatus = user.kycStatus;
+                user.kycStatus = newStatus.toLowerCase();
+                
+                // Add security log
+                securityLogs.push({
+                    id: `SEC-${securityLogs.length + 2000}`,
+                    timestamp: new Date().toISOString(),
+                    eventType: 'kyc_status_change',
+                    userId: userId,
+                    ipAddress: 'ADMIN',
+                    location: 'Admin Panel',
+                    status: 'success',
+                    details: `KYC status changed from ${oldStatus} to ${newStatus}`
+                });
+                
+                // Add activity log
+                activityLogs.push({
+                    timestamp: new Date().toISOString(),
+                    userId: userId,
+                    action: 'KYC Status',
+                    details: `KYC status changed to ${newStatus}`,
+                    amount: 0
+                });
+                
+                alert(`KYC status for user ${userId} updated to ${newStatus}`);
+                updateAllDisplays();
+                
+                // If viewing user details, update the modal
+                if (document.getElementById('user-details-modal').style.display === 'flex') {
+                    viewUserDetails(userId);
+                }
+            }
+        }
+        
+        function viewUserTransactions(userId) {
+            alert(`Showing transactions for user ${userId}\n\nIn a real application, this would filter the transactions table.`);
+            // Switch to transactions tab and filter
+            document.querySelector('[data-tab="transactions"]').click();
+        }
+        
+        function createNewUser() {
+            const name = document.getElementById('new-user-name').value.trim();
+            const email = document.getElementById('new-user-email').value.trim();
+            const phone = document.getElementById('new-user-phone').value.trim();
+            const xooxBalance = parseFloat(document.getElementById('new-user-xoox').value);
+            const inrBalance = parseFloat(document.getElementById('new-user-inr').value);
+            const kycStatus = document.getElementById('new-user-kyc').value;
+            
+            if (!name || !email || !phone) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            if (isNaN(xooxBalance) || xooxBalance < 0 || isNaN(inrBalance) || inrBalance < 0) {
+                alert('Please enter valid balance amounts');
+                return;
+            }
+            
+            const userId = nextUserId.toString().padStart(5, '0');
+            nextUserId++;
+            
+            const newUser = {
+                id: userId,
+                name: name,
+                email: email,
+                phone: phone,
+                xooxBalance: xooxBalance,
+                inrBalance: inrBalance,
+                kycStatus: kycStatus,
+                accountStatus: 'active',
+                joined: new Date().toISOString().split('T')[0],
+                lastLogin: new Date().toISOString(),
+                ipAddress: 'NEW_USER'
+            };
+            
+            users.push(newUser);
+            
+            // Add initial deposit transaction if balance > 0
+            if (inrBalance > 0) {
+                const txId = `TX-${nextTxId++}`;
+                transactions.push({
+                    id: txId,
+                    type: 'deposit',
+                    userId: userId,
+                    amount: inrBalance,
+                    asset: 'INR',
+                    details: 'Initial admin deposit',
+                    status: 'completed',
+                    timestamp: new Date().toISOString(),
+                    fee: 0
+                });
+                
+                // Update exchange balance
+                exchangeBalanceINR += inrBalance;
+            }
+            
+            if (xooxBalance > 0) {
+                const txId = `TX-${nextTxId++}`;
+                transactions.push({
+                    id: txId,
+                    type: 'deposit',
+                    userId: userId,
+                    amount: xooxBalance,
+                    asset: 'XOOX',
+                    details: 'Initial admin deposit',
+                    status: 'completed',
+                    timestamp: new Date().toISOString(),
+                    fee: 0
+                });
+                
+                // Update exchange balance
+                exchangeBalanceXOOX += xooxBalance;
+            }
+            
+            // Add activity log
+            activityLogs.push({
+                timestamp: new Date().toISOString(),
+                userId: userId,
+                action: 'Account Created',
+                details: 'New account created by admin',
+                amount: inrBalance + (xooxBalance * xooxPrice)
+            });
+            
+            // Add security log
+            securityLogs.push({
+                id: `SEC-${securityLogs.length + 2000}`,
+                timestamp: new Date().toISOString(),
+                eventType: 'account_creation',
+                userId: userId,
+                ipAddress: 'ADMIN',
+                location: 'Admin Panel',
+                status: 'success',
+                details: 'Account created by admin'
+            });
+            
+            alert(`User created successfully!\nUser ID: ${userId}\nPassword will be sent to ${email}`);
+            closeModal('add-user-modal');
+            updateAllDisplays();
+            
+            // Clear form
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-email').value = '';
+            document.getElementById('new-user-phone').value = '';
+            document.getElementById('new-user-xoox').value = '0';
+            document.getElementById('new-user-inr').value = '0';
+        }
+        
+        // ==================== TRANSACTION FUNCTIONS ====================
+        function processTransaction(txId, action) {
+            const tx = transactions.find(t => t.id === txId);
+            if (!tx) return;
+            
+            if (action === 'approve') {
+                if (confirm(`Approve ${tx.type} of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount} ${tx.asset} for user ${tx.userId}?`)) {
+                    tx.status = 'completed';
+                    
+                    // If withdrawal, update user balance
+                    if (tx.type === 'withdrawal' && tx.asset === 'INR') {
+                        const user = users.find(u => u.id === tx.userId);
+                        if (user) {
+                            user.inrBalance -= tx.amount;
+                            
+                            // Update exchange balance
+                            exchangeBalanceINR -= tx.amount;
+                        }
+                    }
+                    
+                    // Add activity log
+                    activityLogs.push({
+                        timestamp: new Date().toISOString(),
+                        userId: tx.userId,
+                        action: 'Withdrawal Approved',
+                        details: `Withdrawal of ₹${tx.amount.toFixed(2)} approved by admin`,
+                        amount: tx.amount
+                    });
+                    
+                    alert(`Transaction ${txId} approved!`);
+                }
+            } else if (action === 'reject') {
+                if (confirm(`Reject ${tx.type} of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount} ${tx.asset} for user ${tx.userId}?`)) {
+                    tx.status = 'failed';
+                    
+                    // Add activity log
+                    activityLogs.push({
+                        timestamp: new Date().toISOString(),
+                        userId: tx.userId,
+                        action: 'Withdrawal Rejected',
+                        details: `Withdrawal of ₹${tx.amount.toFixed(2)} rejected by admin`,
+                        amount: tx.amount
+                    });
+                    
+                    alert(`Transaction ${txId} rejected!`);
+                }
+            }
+            
+            updateAllDisplays();
+        }
+        
+        function viewTransaction(txId) {
+            const tx = transactions.find(t => t.id === txId);
+            if (!tx) return;
+            
+            const user = users.find(u => u.id === tx.userId);
+            const date = new Date(tx.timestamp);
+            
+            alert(`Transaction Details:\n\n` +
+                  `ID: ${tx.id}\n` +
+                  `Type: ${tx.type}\n` +
+                  `User: ${user ? user.name : tx.userId} (${tx.userId})\n` +
+                  `Amount: ${tx.asset === 'INR' ? '₹' : ''}${tx.amount.toLocaleString()} ${tx.asset}\n` +
+                  `Details: ${tx.details}\n` +
+                  `Status: ${tx.status}\n` +
+                  `Fee: ₹${tx.fee.toFixed(2)}\n` +
+                  `Date: ${date.toLocaleString()}\n\n` +
+                  `In a real application, this would open a detailed view.`);
+        }
+        
+        // ==================== TRADING FUNCTIONS ====================
+        function cancelOrder(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            if (confirm(`Cancel ${order.type} order for ${order.amount} XOOX at ₹${order.price}?\nTotal: ₹${order.total}`)) {
+                order.status = 'cancelled';
+                
+                // Add activity log
+                activityLogs.push({
+                    timestamp: new Date().toISOString(),
+                    userId: order.userId,
+                    action: 'Order Cancelled',
+                    details: `${order.type.toUpperCase()} order for ${order.amount} XOOX cancelled by admin`,
+                    amount: order.total
+                });
+                
+                alert(`Order ${orderId} cancelled!`);
+                updateAllDisplays();
+            }
+        }
+        
+        function placeOrder() {
+            const type = document.getElementById('order-type').value;
+            const userId = document.getElementById('order-user-id').value.trim();
+            const price = parseFloat(document.getElementById('order-price').value);
+            const amount = parseFloat(document.getElementById('order-amount').value);
+            const execution = document.getElementById('order-execution').value;
+            
+            if (!userId) {
+                alert('Please enter a user ID');
+                return;
+            }
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) {
+                alert(`User ${userId} not found`);
+                return;
+            }
+            
+            if (user.accountStatus !== 'active') {
+                alert(`User ${userId} account is ${user.accountStatus}. Cannot place orders.`);
+                return;
+            }
+            
+            if (isNaN(price) || price <= 0) {
+                alert('Please enter a valid price');
+                return;
+            }
+            
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            const total = price * amount;
+            
+            // Check user balance
+            if (type === 'buy') {
+                if (user.inrBalance < total) {
+                    alert(`User ${userId} has insufficient INR balance.\nRequired: ₹${total.toFixed(2)}\nAvailable: ₹${user.inrBalance.toFixed(2)}`);
+                    return;
+                }
+            } else if (type === 'sell') {
+                if (user.xooxBalance < amount) {
+                    alert(`User ${userId} has insufficient XOOX balance.\nRequired: ${amount.toFixed(4)} XOOX\nAvailable: ${user.xooxBalance.toFixed(4)} XOOX`);
+                    return;
+                }
+            }
+            
+            const orderId = `ORD-${nextOrderId++}`;
+            const order = {
+                id: orderId,
+                userId: userId,
+                type: type,
+                price: price,
+                amount: amount,
+                total: total,
+                status: 'open',
+                timestamp: new Date().toISOString(),
+                filled: 0,
+                execution: execution
+            };
+            
+            orders.push(order);
+            
+            // Lock funds
+            if (type === 'buy') {
+                user.inrBalance -= total;
+            } else if (type === 'sell') {
+                user.xooxBalance -= amount;
+            }
+            
+            // Add activity log
+            activityLogs.push({
+                timestamp: new Date().toISOString(),
+                userId: userId,
+                action: 'Order Placed',
+                details: `${type.toUpperCase()} order for ${amount.toFixed(4)} XOOX at ₹${price.toFixed(2)}`,
+                amount: total
+            });
+            
+            alert(`Order placed successfully!\nOrder ID: ${orderId}\n${type.toUpperCase()} ${amount.toFixed(4)} XOOX at ₹${price.toFixed(2)}\nTotal: ₹${total.toFixed(2)}`);
+            closeModal('place-order-modal');
+            updateAllDisplays();
+            
+            // If market order, try to match immediately
+            if (execution === 'market') {
+                setTimeout(() => executeMarketOrder(orderId), 1000);
+            }
+        }
+        
+        function executeMarketOrder(orderId) {
+            const order = orders.find(o => o.id === orderId && o.status === 'open');
+            if (!order) return;
+            
+            // Find matching orders
+            const matchingOrders = orders.filter(o => 
+                o.id !== orderId && 
+                o.status === 'open' && 
+                o.type !== order.type &&
+                ((order.type === 'buy' && o.price <= order.price) || 
+                 (order.type === 'sell' && o.price >= order.price))
+            );
+            
+            if (matchingOrders.length > 0) {
+                // Execute with first matching order
+                const match = matchingOrders[0];
+                const tradePrice = match.price;
+                const tradeAmount = Math.min(order.amount - order.filled, match.amount - match.filled);
+                const tradeTotal = tradePrice * tradeAmount;
+                const fee = tradeTotal * tradingFee / 100;
+                
+                // Create trade
+                const tradeId = `TRD-${nextTradeId++}`;
+                trades.push({
+                    id: tradeId,
+                    buyerId: order.type === 'buy' ? order.userId : match.userId,
+                    sellerId: order.type === 'sell' ? order.userId : match.userId,
+                    price: tradePrice,
+                    amount: tradeAmount,
+                    total: tradeTotal,
+                    fee: fee,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Update orders
+                order.filled += tradeAmount;
+                match.filled += tradeAmount;
+                
+                if (order.filled >= order.amount) order.status = 'filled';
+                if (match.filled >= match.amount) match.status = 'filled';
+                
+                // Update user balances
+                const buyer = users.find(u => u.id === (order.type === 'buy' ? order.userId : match.userId));
+                const seller = users.find(u => u.id === (order.type === 'sell' ? order.userId : match.userId));
+                
+                if (buyer && seller) {
+                    // Buyer gets XOOX, pays INR
+                    buyer.xooxBalance += tradeAmount;
+                    buyer.inrBalance -= tradeTotal;
+                    
+                    // Seller gets INR, loses XOOX
+                    seller.inrBalance += (tradeTotal - fee);
+                    seller.xooxBalance -= tradeAmount;
+                    
+                    // Exchange collects fee
+                    exchangeBalanceINR += fee;
+                    
+                    // Add activity logs
+                    [buyer.id, seller.id].forEach(uid => {
+                        activityLogs.push({
+                            timestamp: new Date().toISOString(),
+                            userId: uid,
+                            action: 'Trade Executed',
+                            details: `Market trade: ${tradeAmount.toFixed(4)} XOOX at ₹${tradePrice.toFixed(2)}`,
+                            amount: tradeTotal
+                        });
+                    });
+                }
+                
+                updateAllDisplays();
+                alert(`Market order ${orderId} partially filled! Trade ID: ${tradeId}`);
+            }
+        }
+        
+        function calculateOrderTotal() {
+            const price = parseFloat(document.getElementById('order-price').value) || 0;
+            const amount = parseFloat(document.getElementById('order-amount').value) || 0;
+            const total = price * amount;
+            document.getElementById('order-total').value = isNaN(total) ? '0' : total.toFixed(2);
+        }
+        
+        // ==================== SECURITY FUNCTIONS ====================
+        function emergencyLockdown() {
+            if (confirm('EMERGENCY LOCKDOWN\n\nAre you sure? This will:\n• Freeze ALL withdrawals\n• Disable trading\n• Suspend new deposits\n• Put exchange in maintenance mode\n\nThis action requires senior admin approval.')) {
+                // Suspend all users
+                users.forEach(user => {
+                    user.accountStatus = 'suspended';
+                });
+                
+                // Cancel all open orders
+                orders.forEach(order => {
+                    if (order.status === 'open') {
+                        order.status = 'cancelled';
+                    }
+                });
+                
+                // Update system status
+                document.getElementById('system-status').textContent = 'LOCKDOWN';
+                document.getElementById('system-status').style.color = 'var(--danger)';
+                
+                // Add security log
+                securityLogs.push({
+                    id: `SEC-${securityLogs.length + 2000}`,
+                    timestamp: new Date().toISOString(),
+                    eventType: 'emergency_lockdown',
+                    userId: 'ALL',
+                    ipAddress: 'ADMIN',
+                    location: 'Admin Panel',
+                    status: 'critical',
+                    details: 'EMERGENCY LOCKDOWN ACTIVATED BY ADMIN'
+                });
+                
+                // Broadcast alert
+                alert('EMERGENCY LOCKDOWN ACTIVATED!\n\nAll trading suspended.\nAll withdrawals frozen.\nExchange in maintenance mode.');
+                updateAllDisplays();
+            }
+        }
+        
+        function terminateSession(userId) {
+            if (confirm(`Terminate active session for user ${userId}?`)) {
+                const index = activeSessions.findIndex(s => s.userId === userId);
+                if (index !== -1) {
+                    activeSessions.splice(index, 1);
+                    
+                    // Add security log
+                    securityLogs.push({
+                        id: `SEC-${securityLogs.length + 2000}`,
+                        timestamp: new Date().toISOString(),
+                        eventType: 'session_terminated',
+                        userId: userId,
+                        ipAddress: 'ADMIN',
+                        location: 'Admin Panel',
+                        status: 'success',
+                        details: 'Active session terminated by admin'
+                    });
+                    
+                    alert(`Session terminated for user ${userId}`);
+                    updateAllDisplays();
+                }
+            }
+        }
+        
+        function terminateAllSessions() {
+            if (confirm('Terminate ALL active sessions? All users will be logged out.')) {
+                activeSessions = [];
+                
+                // Add security log
+                securityLogs.push({
+                    id: `SEC-${securityLogs.length + 2000}`,
+                    timestamp: new Date().toISOString(),
+                    eventType: 'all_sessions_terminated',
+                    userId: 'ALL',
+                    ipAddress: 'ADMIN',
+                    location: 'Admin Panel',
+                    status: 'success',
+                    details: 'All active sessions terminated by admin'
+                });
+                
+                alert('All active sessions terminated!');
+                updateAllDisplays();
+            }
+        }
+        
+        // ==================== SYSTEM FUNCTIONS ====================
+        function updateXooxPrice() {
+            const newPrice = parseFloat(document.getElementById('xoox-price-input').value);
+            if (isNaN(newPrice) || newPrice <= 0) {
+                alert('Please enter a valid price');
+                return;
+            }
+            
+            const oldPrice = xooxPrice;
+            xooxPrice = newPrice;
+            
+            // Add activity log
+            activityLogs.push({
+                timestamp: new Date().toISOString(),
+                userId: 'SYSTEM',
+                action: 'Price Update',
+                details: `XOOX price updated from ₹${oldPrice.toFixed(2)} to ₹${newPrice.toFixed(2)}`,
+                amount: 0
+            });
+            
+            // Add security log
+            securityLogs.push({
+                id: `SEC-${securityLogs.length + 2000}`,
+                timestamp: new Date().toISOString(),
+                eventType: 'price_update',
+                userId: 'SYSTEM',
+                ipAddress: 'ADMIN',
+                location: 'Admin Panel',
+                status: 'success',
+                details: `XOOX price updated to ₹${newPrice.toFixed(2)}`
+            });
+            
+            alert(`XOOX price updated to ₹${newPrice.toFixed(2)}`);
+            updateDashboardStats();
+            updateFinancialStats();
+        }
+        
+        function toggleMaintenanceMode() {
+            const maintenanceMode = document.getElementById('maintenance-mode').checked;
+            const status = maintenanceMode ? 'MAINTENANCE' : 'Online';
+            const color = maintenanceMode ? 'var(--warning)' : 'var(--success)';
+            
+            document.getElementById('system-status').textContent = status;
+            document.getElementById('system-status').style.color = color;
+            
+            // Add security log
+            securityLogs.push({
+                id: `SEC-${securityLogs.length + 2000}`,
+                timestamp: new Date().toISOString(),
+                eventType: 'maintenance_mode',
+                userId: 'SYSTEM',
+                ipAddress: 'ADMIN',
+                location: 'Admin Panel',
+                status: 'success',
+                details: `Maintenance mode ${maintenanceMode ? 'enabled' : 'disabled'}`
+            });
+            
+            alert(`Maintenance mode ${maintenanceMode ? 'enabled' : 'disabled'}`);
+        }
+        
+        function saveSystemConfig() {
+            tradingFee = parseFloat(document.getElementById('fee-slider').value);
+            document.getElementById('fee-value').textContent = `${tradingFee}%`;
+            
+            // Add activity log
+            activityLogs.push({
+                timestamp: new Date().toISOString(),
+                userId: 'SYSTEM',
+                action: 'Config Update',
+                details: `System configuration updated. Trading fee: ${tradingFee}%`,
+                amount: 0
+            });
+            
+            alert('System configuration saved!');
+        }
+        
+        function sendBroadcast() {
+            const title = document.getElementById('broadcast-title').value.trim();
+            const message = document.getElementById('broadcast-message').value.trim();
+            const type = document.getElementById('broadcast-type').value;
+            
+            if (!title || !message) {
+                alert('Please enter a title and message');
+                return;
+            }
+            
+            const targetAll = document.getElementById('broadcast-all').checked;
+            const targetVerified = document.getElementById('broadcast-verified').checked;
+            const targetUnverified = document.getElementById('broadcast-unverified').checked;
+            
+            let targetCount = 0;
+            if (targetAll) targetCount = users.length;
+            else if (targetVerified || targetUnverified) {
+                targetCount = users.filter(user => 
+                    (targetVerified && user.kycStatus === 'verified') ||
+                    (targetUnverified && user.kycStatus !== 'verified')
+                ).length;
+            }
+            
+            // Add activity log
+            activityLogs.push({
+                timestamp: new Date().toISOString(),
+                userId: 'BROADCAST',
+                action: 'Broadcast',
+                details: `${type}: ${title}`,
+                amount: 0
+            });
+            
+            // Add security log
+            securityLogs.push({
+                id: `SEC-${securityLogs.length + 2000}`,
+                timestamp: new Date().toISOString(),
+                eventType: 'broadcast',
+                userId: 'ALL',
+                ipAddress: 'ADMIN',
+                location: 'Admin Panel',
+                status: 'success',
+                details: `Broadcast sent: ${title}`
+            });
+            
+            alert(`Broadcast sent successfully!\n\nTitle: ${title}\nType: ${type}\nRecipients: ${targetCount} users\n\nMessage will appear in users' notification center.`);
+            closeModal('broadcast-modal');
+            
+            // Clear form
+            document.getElementById('broadcast-title').value = '';
+            document.getElementById('broadcast-message').value = '';
+        }
+        
+        // ==================== UTILITY FUNCTIONS ====================
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function searchUsers() {
+            const searchTerm = document.getElementById('user-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#users-table-body tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+        
+        function searchTransactions() {
+            const searchTerm = document.getElementById('tx-search').value.toLowerCase();
+            const typeFilter = document.getElementById('tx-type-filter').value;
+            const rows = document.querySelectorAll('#transactions-table-body tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const type = row.cells[1].textContent.toLowerCase();
+                
+                const matchesSearch = !searchTerm || text.includes(searchTerm);
+                const matchesType = typeFilter === 'all' || type.includes(typeFilter);
+                
+                row.style.display = (matchesSearch && matchesType) ? '' : 'none';
+            });
+        }
+        
+        function searchActivity() {
+            const searchTerm = document.getElementById('activity-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#activity-body tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+        
+        // ==================== EVENT LISTENERS ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize data
+            initializeData();
+            
+            // Tab switching
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    document.getElementById('page-title').textContent = this.querySelector('span').textContent;
+                    
+                    const firstSubtab = document.querySelector(`#${tabId} .tab`);
+                    if (firstSubtab) firstSubtab.classList.add('active');
+                });
+            });
+            
+            // Subtabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const parentTab = this.closest('.tab-content').id;
+                    document.querySelectorAll(`#${parentTab} .tab`).forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Modal close on outside click
+            window.onclick = function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            }
+            
+            // Button event listeners
+            document.getElementById('broadcast-btn').addEventListener('click', () => {
+                document.getElementById('broadcast-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('add-user-btn').addEventListener('click', () => {
+                document.getElementById('add-user-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('create-user-btn').addEventListener('click', createNewUser);
+            
+            document.getElementById('apply-adjustment-btn').addEventListener('click', applyAdjustment);
+            
+            document.getElementById('send-broadcast-btn').addEventListener('click', sendBroadcast);
+            
+            document.getElementById('place-order-btn').addEventListener('click', () => {
+                document.getElementById('place-order-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('submit-order-btn').addEventListener('click', placeOrder);
+            
+            document.getElementById('order-price').addEventListener('input', calculateOrderTotal);
+            document.getElementById('order-amount').addEventListener('input', calculateOrderTotal);
+            
+            document.getElementById('lockdown-btn').addEventListener('click', emergencyLockdown);
+            
+            document.getElementById('terminate-all-btn').addEventListener('click', terminateAllSessions);
+            
+            document.getElementById('update-price-btn').addEventListener('click', updateXooxPrice);
+            
+            document.getElementById('maintenance-mode').addEventListener('change', toggleMaintenanceMode);
+            
+            document.getElementById('save-config-btn').addEventListener('click', saveSystemConfig);
+            
+            document.getElementById('fee-slider').addEventListener('input', function() {
+                document.getElementById('fee-value').textContent = `${this.value}%`;
+            });
+            
+            // Search functionality
+            document.getElementById('user-search').addEventListener('input', searchUsers);
+            document.getElementById('tx-search').addEventListener('input', searchTransactions);
+            document.getElementById('tx-type-filter').addEventListener('change', searchTransactions);
+            document.getElementById('activity-search').addEventListener('input', searchActivity);
+            
+            // Refresh buttons
+            document.getElementById('refresh-health').addEventListener('click', () => {
+                alert('System health refreshed!');
+            });
+            
+            document.getElementById('refresh-trades').addEventListener('click', () => {
+                updateRecentTrades();
+                alert('Trade data refreshed!');
+            });
+            
+            // Export buttons
+            document.getElementById('export-users-btn').addEventListener('click', () => {
+                alert('User data exported to CSV!\n\nIn a real application, this would download a CSV file.');
+            });
+            
+            document.getElementById('export-financial-btn').addEventListener('click', () => {
+                alert('Financial report exported to PDF!\n\nIn a real application, this would generate a PDF report.');
+            });
+            
+            // Other system buttons
+            document.getElementById('api-keys-btn').addEventListener('click', () => {
+                alert('API Key Management\n\nIn a real application, this would open API key management interface.');
+            });
+            
+            document.getElementById('run-backup-btn').addEventListener('click', () => {
+                alert('Backup initiated!\n\nDatabase backup in progress. This may take a few minutes.');
+            });
+            
+            document.getElementById('view-analytics-btn').addEventListener('click', () => {
+                alert('Analytics Dashboard\n\nIn a real application, this would open advanced analytics dashboard.');
+            });
+            
+            // Simulate real-time updates
+            setInterval(() => {
+                // Randomly update XOOX price
+                const change = (Math.random() - 0.5) * 0.02; // ±1%
+                xooxPrice *= (1 + change);
+                xooxPrice = Math.max(50, Math.min(200, xooxPrice)); // Keep between ₹50-₹200
+                
+                // Update display
+                updateDashboardStats();
+                updateFinancialStats();
+                
+                // Randomly add new activity
+                if (Math.random() > 0.7) {
+                    const userId = (Math.floor(Math.random() * users.length) + 1).toString().padStart(5, '0');
+                    const actions = ['Login', 'Trade', 'Deposit', 'Withdrawal', 'Order Placed'];
+                    const action = actions[Math.floor(Math.random() * actions.length)];
+                    
+                    activityLogs.push({
+                        timestamp: new Date().toISOString(),
+                        userId: userId,
+                        action: action,
+                        details: `Simulated ${action.toLowerCase()} activity`,
+                        amount: action === 'Trade' || action === 'Deposit' || action === 'Withdrawal' ? 
+                            parseFloat((Math.random() * 50000).toFixed(2)) : 0
+                    });
+                    
+                    // Keep only last 50 activities
+                    if (activityLogs.length > 50) {
+                        activityLogs.shift();
+                    }
+                    
+                    updateActivityLogs();
+                }
+            }, 30000); // Update every 30 seconds
+        });
+    </script>
+</body>
+</html>
