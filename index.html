@@ -28,7 +28,6 @@
         body {
             background-color: #0d1117;
             color: #e6edf3;
-            display: flex;
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -801,9 +800,9 @@
                 </button>
                 
                 <div style="margin-top: 20px; text-align: center; color: #8b949e; font-size: 12px;">
-                    <p>Demo Credentials:</p>
-                    <p>Username: <strong>admin</strong></p>
-                    <p>Password: <strong>Admin12345</strong></p>
+                    <p>Crypto Exchange Admin Panel</p>
+                   <!-- <p>Username: <strong>admin</strong></p>
+                    <p>Password: <strong>Admin12345</strong></p> -->
                 </div>
             </form>
         </div>
@@ -1740,10 +1739,10 @@
                 errorElement.style.display = 'block';
                 
                 // Shake animation for error
-                document.getElementById('login-form').style.animation = 'none';
-                setTimeout(() => {
-                    document.getElementById('login-form').style.animation = 'shake 0.5s';
-                }, 10);
+                const loginForm = document.getElementById('login-form');
+                loginForm.style.animation = 'none';
+                void loginForm.offsetWidth; // Trigger reflow
+                loginForm.style.animation = 'shake 0.5s';
                 
                 // Clear password field
                 document.getElementById('password').value = '';
@@ -1820,33 +1819,41 @@
         }
         
         function completeLogin() {
-            // Initialize data
-            initializeData();
-            
-            // Hide loading screen
-            document.getElementById('loading-screen').style.display = 'none';
-            
-            // Show admin panel
-            document.getElementById('sidebar').style.display = 'block';
-            document.getElementById('main-content').style.display = 'block';
-            
-            // Set login flag
-            isLoggedIn = true;
-            
-            // Add login security log
-            securityLogs.push({
-                id: `SEC-${securityLogs.length + 2000}`,
-                timestamp: new Date().toISOString(),
-                eventType: 'admin_login',
-                userId: 'ADMIN',
-                ipAddress: '127.0.0.1',
-                location: 'Localhost',
-                status: 'success',
-                details: 'Admin login successful'
-            });
-            
-            // Update security logs display
-            updateSecurityLogs();
+            try {
+                // Initialize data
+                initializeData();
+                
+                // Hide loading screen
+                document.getElementById('loading-screen').style.display = 'none';
+                
+                // Show admin panel
+                document.getElementById('sidebar').style.display = 'block';
+                document.getElementById('main-content').style.display = 'block';
+                
+                // Set login flag
+                isLoggedIn = true;
+                
+                // Add login security log
+                securityLogs.push({
+                    id: `SEC-${securityLogs.length + 2000}`,
+                    timestamp: new Date().toISOString(),
+                    eventType: 'admin_login',
+                    userId: 'ADMIN',
+                    ipAddress: '127.0.0.1',
+                    location: 'Localhost',
+                    status: 'success',
+                    details: 'Admin login successful'
+                });
+                
+                // Update security logs display
+                updateSecurityLogs();
+            } catch (error) {
+                console.error('Error during login:', error);
+                alert('Error loading dashboard. Please try again.');
+                // Return to login screen
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('login-container').style.display = 'flex';
+            }
         }
         
         function handleLogout() {
@@ -1882,6 +1889,18 @@
         
         // ==================== INITIAL DATA SETUP ====================
         function initializeData() {
+            console.log('Initializing data...');
+            
+            // Reset arrays to ensure fresh data
+            users = [];
+            transactions = [];
+            orders = [];
+            trades = [];
+            securityLogs = [];
+            activeSessions = [];
+            feeCollection = [];
+            activityLogs = [];
+            
             // Initialize 100 unique Indian names
             const uniqueIndianNames = [
                 // Male Names
@@ -1954,7 +1973,7 @@
             for (let i = 0; i < 100; i++) {
                 const userId = Math.floor(Math.random() * 100) + 1;
                 const type = txTypes[Math.floor(Math.random() * txTypes.length)];
-                const asset = assets[Math.floor(Math.random() * assets.length)];
+                let asset = assets[Math.floor(Math.random() * assets.length)];
                 let amount, details;
                 
                 if (type === 'deposit') {
@@ -2148,7 +2167,9 @@
                 });
             }
             
+            // Update all displays
             updateAllDisplays();
+            console.log('Data initialization complete');
         }
         
         // ==================== DISPLAY FUNCTIONS ====================
@@ -2167,6 +2188,8 @@
         
         function updateUsersTable() {
             const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             let filteredUsers = [];
@@ -2221,11 +2244,16 @@
                 tbody.appendChild(row);
             });
             
-            document.getElementById('total-users').textContent = users.length.toLocaleString();
+            const totalUsersElement = document.getElementById('total-users');
+            if (totalUsersElement) {
+                totalUsersElement.textContent = users.length.toLocaleString();
+            }
         }
         
         function updateTransactionsTable() {
             const tbody = document.getElementById('transactions-table-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             let filteredTransactions = [];
@@ -2307,12 +2335,13 @@
         
         function updateOpenOrders() {
             const tbody = document.getElementById('open-orders-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             const openOrders = orders.filter(order => order.status === 'open');
-            document.getElementById('open-orders-count').textContent = openOrders.length;
             
-            openOrders.slice(-10).reverse().forEach(order => {
+            openOrders.forEach(order => {
                 const date = new Date(order.timestamp);
                 const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
@@ -2320,22 +2349,34 @@
                 row.innerHTML = `
                     <td><span class="user-id">${order.id}</span></td>
                     <td><span class="user-id">${order.userId}</span></td>
-                    <td><span style="color: ${order.type === 'buy' ? 'var(--success)' : 'var(--danger)'};">${order.type.toUpperCase()}</span></td>
+                    <td><span class="status ${order.type === 'buy' ? 'status-deposit' : 'status-withdrawal'}">${order.type.toUpperCase()}</span></td>
                     <td>₹${order.price.toFixed(2)}</td>
                     <td>${order.amount.toFixed(4)}</td>
                     <td>₹${order.total.toFixed(2)}</td>
                     <td>${timeStr}</td>
-                    <td><button class="btn btn-sm btn-danger" onclick="cancelOrder('${order.id}')">Cancel</button></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn btn-sm btn-success" onclick="executeOrder('${order.id}')">Execute</button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelOrder('${order.id}')">Cancel</button>
+                        </div>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
+            
+            const openOrdersCount = document.getElementById('open-orders-count');
+            if (openOrdersCount) {
+                openOrdersCount.textContent = openOrders.length;
+            }
         }
         
         function updateRecentTrades() {
             const tbody = document.getElementById('recent-trades-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
-            trades.slice(-10).reverse().forEach(trade => {
+            trades.slice(-15).reverse().forEach(trade => {
                 const date = new Date(trade.timestamp);
                 const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const dateStr = date.toLocaleDateString();
@@ -2356,6 +2397,8 @@
         
         function updateSecurityLogs() {
             const tbody = document.getElementById('security-logs-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             securityLogs.slice(-15).reverse().forEach(log => {
@@ -2366,11 +2409,11 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${dateStr} ${timeStr}</td>
-                    <td><span class="status status-${log.eventType === 'failed_login' ? 'inactive' : 'active'}">${log.eventType.replace('_', ' ').toUpperCase()}</span></td>
+                    <td><span class="status status-${log.eventType === 'failed_login' ? 'failed' : 'completed'}">${log.eventType.replace('_', ' ')}</span></td>
                     <td><span class="user-id">${log.userId}</span></td>
                     <td>${log.ipAddress}</td>
                     <td>${log.location}</td>
-                    <td><span class="status status-${log.status}">${log.status.toUpperCase()}</span></td>
+                    <td><span class="status status-${log.status}">${log.status}</span></td>
                     <td>${log.details}</td>
                 `;
                 tbody.appendChild(row);
@@ -2379,23 +2422,27 @@
         
         function updateActiveSessions() {
             const tbody = document.getElementById('active-sessions-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             activeSessions.forEach(session => {
                 const loginTime = new Date(session.loginTime);
                 const lastActivity = new Date(session.lastActivity);
-                const loginStr = loginTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                const activityStr = lastActivity.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const loginTimeStr = loginTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const lastActivityStr = lastActivity.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><span class="user-id">${session.userId}</span></td>
                     <td>${session.ipAddress}</td>
                     <td>${session.device}</td>
-                    <td>${loginStr}</td>
-                    <td>${activityStr}</td>
-                    <td><span class="status status-${session.twoFA === 'enabled' ? 'verified' : 'inactive'}">${session.twoFA.toUpperCase()}</span></td>
-                    <td><button class="btn btn-sm btn-danger" onclick="terminateSession('${session.userId}')">Terminate</button></td>
+                    <td>${loginTimeStr}</td>
+                    <td>${lastActivityStr}</td>
+                    <td><span class="status ${session.twoFA === 'enabled' ? 'status-verified' : 'status-inactive'}">${session.twoFA}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="terminateSession('${session.userId}')">Terminate</button>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
@@ -2403,6 +2450,8 @@
         
         function updateFeeCollection() {
             const tbody = document.getElementById('fee-collection-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             feeCollection.forEach(day => {
@@ -2413,7 +2462,7 @@
                     <td>₹${day.withdrawalFees.toFixed(2)}</td>
                     <td>₹${day.depositFees.toFixed(2)}</td>
                     <td><strong>₹${day.totalFees.toFixed(2)}</strong></td>
-                    <td><span class="${day.growth >= 0 ? 'positive' : 'negative'}">${day.growth >= 0 ? '+' : ''}${day.growth}%</span></td>
+                    <td><span class="${day.growth > 0 ? 'positive' : 'negative'}">${day.growth > 0 ? '+' : ''}${day.growth}%</span></td>
                 `;
                 tbody.appendChild(row);
             });
@@ -2421,6 +2470,8 @@
         
         function updateActivityLogs() {
             const tbody = document.getElementById('activity-body');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             activityLogs.slice(-10).reverse().forEach(activity => {
@@ -2431,7 +2482,7 @@
                 row.innerHTML = `
                     <td>${timeStr}</td>
                     <td><span class="user-id">${activity.userId}</span></td>
-                    <td><span class="status status-${activity.action === 'Login' ? 'active' : 'verified'}">${activity.action}</span></td>
+                    <td><span class="status status-${activity.action.toLowerCase().replace(' ', '-')}">${activity.action}</span></td>
                     <td>${activity.details}</td>
                     <td>${activity.amount > 0 ? '₹' + activity.amount.toFixed(2) : '-'}</td>
                 `;
@@ -2440,54 +2491,31 @@
         }
         
         function updateFinancialStats() {
-            // Calculate total XOOX in exchange
-            let totalXOOX = 0;
-            let hotXOOX = 0;
-            let xooxInOrders = 0;
+            // Update financial summary
+            const totalXooxBalance = document.getElementById('total-xoox-balance');
+            const xooxInrValue = document.getElementById('xoox-inr-value');
             
-            // User balances
-            users.forEach(user => {
-                totalXOOX += user.xooxBalance;
-            });
-            
-            // Orders
-            orders.forEach(order => {
-                if (order.status === 'open') {
-                    xooxInOrders += (order.type === 'sell' ? order.amount : 0);
-                }
-            });
-            
-            hotXOOX = totalXOOX * 0.05; // 5% in hot wallet
-            const coldXOOX = totalXOOX - hotXOOX - xooxInOrders;
-            const availableXOOX = hotXOOX - xooxInOrders;
-            
-            // Update display
-            document.getElementById('total-xoox-balance').textContent = totalXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('hot-xoox').textContent = hotXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('cold-xoox').textContent = coldXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('xoox-in-orders').textContent = xooxInOrders.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('available-xoox').textContent = availableXOOX.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('xoox-inr-value').textContent = `₹${(totalXOOX * xooxPrice).toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            if (totalXooxBalance) {
+                totalXooxBalance.textContent = exchangeBalanceXOOX.toLocaleString();
+            }
+            if (xooxInrValue) {
+                xooxInrValue.textContent = `₹${(exchangeBalanceXOOX * xooxPrice).toLocaleString('en-IN')}`;
+            }
         }
         
         function updateDashboardStats() {
-            // Update XOOX price everywhere
-            const priceElements = document.querySelectorAll('#xoox-price, .xoox-price, #current-xoox-price');
+            // Update XOOX price displays
+            const priceElements = document.querySelectorAll('.xoox-price, #current-xoox-price, #xoox-price');
             priceElements.forEach(el => {
                 el.textContent = `₹${xooxPrice.toFixed(2)}`;
             });
             
-            // Update 24h volume
-            const volume24h = trades.reduce((sum, trade) => {
-                const tradeDate = new Date(trade.timestamp);
-                const now = new Date();
-                if ((now - tradeDate) <= 24 * 60 * 60 * 1000) {
-                    return sum + trade.total;
-                }
-                return sum;
-            }, 0);
-            
-            document.getElementById('24h-volume').textContent = `₹${(volume24h / 10000000).toFixed(2)} Cr`;
+            // Update 24h volume (randomized for demo)
+            const volumeElement = document.getElementById('24h-volume');
+            if (volumeElement) {
+                const volume = 4.28 + (Math.random() * 0.5 - 0.25);
+                volumeElement.textContent = `₹${volume.toFixed(2)} Cr`;
+            }
         }
         
         // ==================== USER FUNCTIONS ====================
@@ -2533,35 +2561,9 @@
                         <button class="btn btn-secondary" onclick="viewUserTransactions('${user.id}')">View Transactions</button>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <h4>Recent Activity</h4>
-                    <div style="max-height: 200px; overflow-y: auto; background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid #30363d;">
-                        ${getUserActivityHTML(user.id)}
-                    </div>
-                </div>
             `;
             
-            document.getElementById('user-details-modal').style.display = 'flex';
-        }
-        
-        function getUserActivityHTML(userId) {
-            const userActivities = activityLogs.filter(activity => activity.userId === userId);
-            if (userActivities.length === 0) return '<p style="color: #8b949e; text-align: center;">No recent activity</p>';
-            
-            return userActivities.slice(-5).reverse().map(activity => {
-                const date = new Date(activity.timestamp);
-                const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                return `
-                    <div style="padding: 5px 0; border-bottom: 1px solid #30363d;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>${activity.action}</span>
-                            <span style="color: #8b949e; font-size: 12px;">${timeStr}</span>
-                        </div>
-                        <div style="font-size: 12px; color: #8b949e;">${activity.details}</div>
-                    </div>
-                `;
-            }).join('');
+            openModal('user-details-modal');
         }
         
         function adjustUserBalance(userId) {
@@ -2575,176 +2577,42 @@
             document.getElementById('current-inr-balance').value = `₹${user.inrBalance.toFixed(2)}`;
             
             // Reset form
-            document.getElementById('adjust-asset').value = 'XOOX';
-            document.getElementById('adjust-action').value = 'add';
             document.getElementById('adjust-amount').value = '';
-            document.getElementById('new-balance-preview').value = 'Enter amount to calculate';
             document.getElementById('adjust-reason').value = '';
             document.getElementById('send-notification').checked = true;
+            document.getElementById('new-balance-preview').value = '';
             
-            document.getElementById('adjust-balance-modal').style.display = 'flex';
-        }
-        
-        function updateBalancePreview() {
-            const userId = document.getElementById('adjust-user-id').value;
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
+            openModal('adjust-balance-modal');
             
-            const asset = document.getElementById('adjust-asset').value;
-            const action = document.getElementById('adjust-action').value;
-            const amount = parseFloat(document.getElementById('adjust-amount').value) || 0;
+            // Add event listeners for real-time calculation
+            const amountInput = document.getElementById('adjust-amount');
+            const assetSelect = document.getElementById('adjust-asset');
+            const actionSelect = document.getElementById('adjust-action');
             
-            if (amount <= 0) {
-                document.getElementById('new-balance-preview').value = 'Enter valid amount';
-                return;
-            }
-            
-            let currentBalance, newBalance;
-            
-            if (asset === 'XOOX') {
-                currentBalance = user.xooxBalance;
-                if (action === 'add') {
-                    newBalance = currentBalance + amount;
-                } else if (action === 'subtract') {
-                    newBalance = currentBalance - amount;
-                } else if (action === 'set') {
-                    newBalance = amount;
+            const updatePreview = () => {
+                const amount = parseFloat(amountInput.value) || 0;
+                const asset = assetSelect.value;
+                const action = actionSelect.value;
+                
+                let newBalance = 0;
+                if (asset === 'XOOX') {
+                    const current = user.xooxBalance;
+                    if (action === 'add') newBalance = current + amount;
+                    else if (action === 'subtract') newBalance = Math.max(0, current - amount);
+                    else if (action === 'set') newBalance = amount;
+                    document.getElementById('new-balance-preview').value = `${newBalance.toFixed(4)} XOOX`;
+                } else {
+                    const current = user.inrBalance;
+                    if (action === 'add') newBalance = current + amount;
+                    else if (action === 'subtract') newBalance = Math.max(0, current - amount);
+                    else if (action === 'set') newBalance = amount;
+                    document.getElementById('new-balance-preview').value = `₹${newBalance.toFixed(2)}`;
                 }
-                document.getElementById('new-balance-preview').value = `${newBalance.toFixed(4)} XOOX`;
-            } else if (asset === 'INR') {
-                currentBalance = user.inrBalance;
-                if (action === 'add') {
-                    newBalance = currentBalance + amount;
-                } else if (action === 'subtract') {
-                    newBalance = currentBalance - amount;
-                } else if (action === 'set') {
-                    newBalance = amount;
-                }
-                document.getElementById('new-balance-preview').value = `₹${newBalance.toFixed(2)}`;
-            }
-        }
-        
-        function applyAdjustment() {
-            const userId = document.getElementById('adjust-user-id').value;
-            const asset = document.getElementById('adjust-asset').value;
-            const action = document.getElementById('adjust-action').value;
-            const amount = parseFloat(document.getElementById('adjust-amount').value);
-            const reason = document.getElementById('adjust-reason').value;
-            const sendNotification = document.getElementById('send-notification').checked;
+            };
             
-            if (!userId || isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount');
-                return;
-            }
-            
-            const user = users.find(u => u.id === userId);
-            if (!user) {
-                alert('User not found');
-                return;
-            }
-            
-            let logMessage = '';
-            let oldBalance, newBalance;
-            
-            if (asset === 'XOOX') {
-                oldBalance = user.xooxBalance;
-                if (action === 'add') {
-                    user.xooxBalance += amount;
-                    newBalance = user.xooxBalance;
-                    logMessage = `Admin deposited ${amount.toFixed(4)} XOOX to user ${userId}`;
-                    
-                    // Update exchange balance
-                    exchangeBalanceXOOX += amount;
-                } else if (action === 'subtract') {
-                    if (user.xooxBalance < amount) {
-                        alert('Insufficient XOOX balance');
-                        return;
-                    }
-                    user.xooxBalance -= amount;
-                    newBalance = user.xooxBalance;
-                    logMessage = `Admin withdrew ${amount.toFixed(4)} XOOX from user ${userId}`;
-                    
-                    // Update exchange balance
-                    exchangeBalanceXOOX -= amount;
-                } else if (action === 'set') {
-                    newBalance = amount;
-                    logMessage = `Admin set XOOX balance from ${oldBalance.toFixed(4)} to ${amount.toFixed(4)} for user ${userId}`;
-                    user.xooxBalance = amount;
-                }
-            } else if (asset === 'INR') {
-                oldBalance = user.inrBalance;
-                if (action === 'add') {
-                    user.inrBalance += amount;
-                    newBalance = user.inrBalance;
-                    logMessage = `Admin deposited ₹${amount.toFixed(2)} to user ${userId}`;
-                    
-                    // Update exchange balance
-                    exchangeBalanceINR += amount;
-                } else if (action === 'subtract') {
-                    if (user.inrBalance < amount) {
-                        alert('Insufficient INR balance');
-                        return;
-                    }
-                    user.inrBalance -= amount;
-                    newBalance = user.inrBalance;
-                    logMessage = `Admin withdrew ₹${amount.toFixed(2)} from user ${userId}`;
-                    
-                    // Update exchange balance
-                    exchangeBalanceINR -= amount;
-                } else if (action === 'set') {
-                    newBalance = amount;
-                    logMessage = `Admin set INR balance from ₹${oldBalance.toFixed(2)} to ₹${amount.toFixed(2)} for user ${userId}`;
-                    user.inrBalance = amount;
-                }
-            }
-            
-            if (reason) {
-                logMessage += ` - Reason: ${reason}`;
-            }
-            
-            // Add transaction record
-            const txId = `TX-${nextTxId++}`;
-            transactions.push({
-                id: txId,
-                type: 'adjustment',
-                userId: userId,
-                amount: amount,
-                asset: asset,
-                details: `Admin adjustment: ${action} ${asset}${reason ? ` (${reason})` : ''}`,
-                status: 'completed',
-                timestamp: new Date().toISOString(),
-                fee: 0
-            });
-            
-            // Add activity log
-            activityLogs.push({
-                timestamp: new Date().toISOString(),
-                userId: userId,
-                action: 'Balance Adjustment',
-                details: logMessage,
-                amount: amount
-            });
-            
-            // Add security log
-            securityLogs.push({
-                id: `SEC-${securityLogs.length + 2000}`,
-                timestamp: new Date().toISOString(),
-                eventType: 'balance_adjustment',
-                userId: userId,
-                ipAddress: 'ADMIN',
-                location: 'Admin Panel',
-                status: 'success',
-                details: logMessage
-            });
-            
-            // Simulate notification
-            if (sendNotification) {
-                console.log(`Notification sent to user ${userId}: Your ${asset} balance was adjusted by admin. New balance: ${newBalance}`);
-            }
-            
-            alert(`Balance adjusted successfully!\n\nTransaction ID: ${txId}\n${logMessage}\n\nUser notified: ${sendNotification ? 'Yes' : 'No'}`);
-            closeModal('adjust-balance-modal');
-            updateAllDisplays();
+            amountInput.oninput = updatePreview;
+            assetSelect.onchange = updatePreview;
+            actionSelect.onchange = updatePreview;
         }
         
         function editUserBalance(userId) {
@@ -2758,115 +2626,7 @@
             document.getElementById('edit-inr-balance').value = user.inrBalance;
             document.getElementById('edit-reason').value = '';
             
-            document.getElementById('edit-balance-modal').style.display = 'flex';
-        }
-        
-        function setXooxBalance() {
-            const userId = document.getElementById('edit-user-id').value;
-            const newBalance = parseFloat(document.getElementById('edit-xoox-balance').value);
-            
-            if (isNaN(newBalance) || newBalance < 0) {
-                alert('Please enter a valid XOOX balance');
-                return;
-            }
-            
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            user.xooxBalance = newBalance;
-            alert(`XOOX balance set to ${newBalance.toFixed(4)}`);
-        }
-        
-        function setInrBalance() {
-            const userId = document.getElementById('edit-user-id').value;
-            const newBalance = parseFloat(document.getElementById('edit-inr-balance').value);
-            
-            if (isNaN(newBalance) || newBalance < 0) {
-                alert('Please enter a valid INR balance');
-                return;
-            }
-            
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            user.inrBalance = newBalance;
-            alert(`INR balance set to ₹${newBalance.toFixed(2)}`);
-        }
-        
-        function quickAdjust(asset, action, amount) {
-            const userId = document.getElementById('edit-user-id').value;
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            let oldBalance, newBalance;
-            
-            if (asset === 'XOOX') {
-                oldBalance = user.xooxBalance;
-                if (action === 'add') {
-                    user.xooxBalance += amount;
-                } else if (action === 'subtract') {
-                    if (user.xooxBalance >= amount) {
-                        user.xooxBalance -= amount;
-                    } else {
-                        alert('Insufficient XOOX balance');
-                        return;
-                    }
-                }
-                newBalance = user.xooxBalance;
-                document.getElementById('edit-xoox-balance').value = newBalance;
-            } else if (asset === 'INR') {
-                oldBalance = user.inrBalance;
-                if (action === 'add') {
-                    user.inrBalance += amount;
-                } else if (action === 'subtract') {
-                    if (user.inrBalance >= amount) {
-                        user.inrBalance -= amount;
-                    } else {
-                        alert('Insufficient INR balance');
-                        return;
-                    }
-                }
-                newBalance = user.inrBalance;
-                document.getElementById('edit-inr-balance').value = newBalance;
-            }
-            
-            alert(`${action === 'add' ? 'Added' : 'Subtracted'} ${amount} ${asset}.\nOld: ${oldBalance}\nNew: ${newBalance}`);
-        }
-        
-        function saveAllBalanceChanges() {
-            const userId = document.getElementById('edit-user-id').value;
-            const reason = document.getElementById('edit-reason').value;
-            
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            // Log the changes
-            const logMessage = `Admin directly edited balances for user ${userId}. ${reason ? `Reason: ${reason}` : ''}`;
-            
-            // Add activity log
-            activityLogs.push({
-                timestamp: new Date().toISOString(),
-                userId: userId,
-                action: 'Balance Edited',
-                details: logMessage,
-                amount: 0
-            });
-            
-            // Add security log
-            securityLogs.push({
-                id: `SEC-${securityLogs.length + 2000}`,
-                timestamp: new Date().toISOString(),
-                eventType: 'balance_edit',
-                userId: userId,
-                ipAddress: 'ADMIN',
-                location: 'Admin Panel',
-                status: 'success',
-                details: logMessage
-            });
-            
-            alert(`Balance changes saved for user ${userId}!`);
-            closeModal('edit-balance-modal');
-            updateAllDisplays();
+            openModal('edit-balance-modal');
         }
         
         function toggleUserStatus(userId) {
@@ -2874,9 +2634,9 @@
             if (!user) return;
             
             const newStatus = user.accountStatus === 'active' ? 'suspended' : 'active';
-            const confirmMessage = newStatus === 'suspended' ? 
-                `Freeze account ${userId}? User will not be able to trade, deposit, or withdraw.` :
-                `Activate account ${userId}? User will regain full access.`;
+            const confirmMessage = newStatus === 'suspended' 
+                ? `Are you sure you want to suspend user ${userId}?`
+                : `Are you sure you want to activate user ${userId}?`;
             
             if (confirm(confirmMessage)) {
                 user.accountStatus = newStatus;
@@ -2887,95 +2647,30 @@
                     timestamp: new Date().toISOString(),
                     eventType: 'account_status_change',
                     userId: userId,
-                    ipAddress: 'ADMIN',
+                    ipAddress: '127.0.0.1',
                     location: 'Admin Panel',
                     status: 'success',
-                    details: `Account ${newStatus === 'suspended' ? 'frozen' : 'activated'} by admin`
+                    details: `Account ${newStatus === 'suspended' ? 'suspended' : 'activated'} by admin`
                 });
                 
-                // Add activity log
-                activityLogs.push({
-                    timestamp: new Date().toISOString(),
-                    userId: userId,
-                    action: 'Account Status',
-                    details: `Account ${newStatus === 'suspended' ? 'frozen' : 'activated'} by admin`,
-                    amount: 0
-                });
+                // Update displays
+                updateUsersTable();
+                updateSecurityLogs();
                 
-                alert(`Account ${userId} has been ${newStatus === 'suspended' ? 'frozen' : 'activated'}!`);
-                updateAllDisplays();
-                
-                // If viewing user details, update the modal
-                if (document.getElementById('user-details-modal').style.display === 'flex') {
-                    viewUserDetails(userId);
-                }
+                alert(`User ${userId} has been ${newStatus === 'suspended' ? 'suspended' : 'activated'}.`);
             }
-        }
-        
-        function editUserKYC(userId) {
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            const newStatus = prompt(`Change KYC status for user ${userId} (current: ${user.kycStatus})\nEnter: verified, pending, or rejected:`, user.kycStatus);
-            
-            if (newStatus && ['verified', 'pending', 'rejected'].includes(newStatus.toLowerCase())) {
-                const oldStatus = user.kycStatus;
-                user.kycStatus = newStatus.toLowerCase();
-                
-                // Add security log
-                securityLogs.push({
-                    id: `SEC-${securityLogs.length + 2000}`,
-                    timestamp: new Date().toISOString(),
-                    eventType: 'kyc_status_change',
-                    userId: userId,
-                    ipAddress: 'ADMIN',
-                    location: 'Admin Panel',
-                    status: 'success',
-                    details: `KYC status changed from ${oldStatus} to ${newStatus}`
-                });
-                
-                // Add activity log
-                activityLogs.push({
-                    timestamp: new Date().toISOString(),
-                    userId: userId,
-                    action: 'KYC Status',
-                    details: `KYC status changed to ${newStatus}`,
-                    amount: 0
-                });
-                
-                alert(`KYC status for user ${userId} updated to ${newStatus}`);
-                updateAllDisplays();
-                
-                // If viewing user details, update the modal
-                if (document.getElementById('user-details-modal').style.display === 'flex') {
-                    viewUserDetails(userId);
-                }
-            }
-        }
-        
-        function viewUserTransactions(userId) {
-            alert(`Showing transactions for user ${userId}\n\nIn a real application, this would filter the transactions table.`);
-            // Switch to transactions tab and filter
-            document.querySelector('[data-tab="transactions"]').click();
-            document.getElementById('tx-search').value = userId;
-            searchTransactions();
         }
         
         function createNewUser() {
             const name = document.getElementById('new-user-name').value.trim();
             const email = document.getElementById('new-user-email').value.trim();
             const phone = document.getElementById('new-user-phone').value.trim();
-            const xooxBalance = parseFloat(document.getElementById('new-user-xoox').value);
-            const inrBalance = parseFloat(document.getElementById('new-user-inr').value);
+            const xooxBalance = parseFloat(document.getElementById('new-user-xoox').value) || 0;
+            const inrBalance = parseFloat(document.getElementById('new-user-inr').value) || 0;
             const kycStatus = document.getElementById('new-user-kyc').value;
             
             if (!name || !email || !phone) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            
-            if (isNaN(xooxBalance) || xooxBalance < 0 || isNaN(inrBalance) || inrBalance < 0) {
-                alert('Please enter valid balance amounts');
+                alert('Please fill in all required fields: Name, Email, and Phone.');
                 return;
             }
             
@@ -2993,521 +2688,177 @@
                 accountStatus: 'active',
                 joined: new Date().toISOString().split('T')[0],
                 lastLogin: new Date().toISOString(),
-                ipAddress: 'NEW_USER'
+                ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
             };
             
             users.push(newUser);
             
-            // Add initial deposit transaction if balance > 0
-            if (inrBalance > 0) {
-                const txId = `TX-${nextTxId++}`;
-                transactions.push({
-                    id: txId,
-                    type: 'deposit',
-                    userId: userId,
-                    amount: inrBalance,
-                    asset: 'INR',
-                    details: 'Initial admin deposit',
-                    status: 'completed',
-                    timestamp: new Date().toISOString(),
-                    fee: 0
-                });
-                
-                // Update exchange balance
-                exchangeBalanceINR += inrBalance;
-            }
-            
+            // Add transaction for initial balances
             if (xooxBalance > 0) {
-                const txId = `TX-${nextTxId++}`;
                 transactions.push({
-                    id: txId,
-                    type: 'deposit',
+                    id: `TX-${nextTxId++}`,
+                    type: 'adjustment',
                     userId: userId,
                     amount: xooxBalance,
                     asset: 'XOOX',
-                    details: 'Initial admin deposit',
+                    details: 'Initial balance setup by admin',
                     status: 'completed',
                     timestamp: new Date().toISOString(),
                     fee: 0
                 });
-                
-                // Update exchange balance
-                exchangeBalanceXOOX += xooxBalance;
             }
             
-            // Add activity log
-            activityLogs.push({
-                timestamp: new Date().toISOString(),
-                userId: userId,
-                action: 'Account Created',
-                details: 'New account created by admin',
-                amount: inrBalance + (xooxBalance * xooxPrice)
-            });
+            if (inrBalance > 0) {
+                transactions.push({
+                    id: `TX-${nextTxId++}`,
+                    type: 'adjustment',
+                    userId: userId,
+                    amount: inrBalance,
+                    asset: 'INR',
+                    details: 'Initial balance setup by admin',
+                    status: 'completed',
+                    timestamp: new Date().toISOString(),
+                    fee: 0
+                });
+            }
             
-            // Add security log
-            securityLogs.push({
-                id: `SEC-${securityLogs.length + 2000}`,
-                timestamp: new Date().toISOString(),
-                eventType: 'account_creation',
-                userId: userId,
-                ipAddress: 'ADMIN',
-                location: 'Admin Panel',
-                status: 'success',
-                details: 'Account created by admin'
-            });
-            
-            alert(`User created successfully!\nUser ID: ${userId}\nPassword will be sent to ${email}`);
+            // Close modal and reset form
             closeModal('add-user-modal');
-            updateAllDisplays();
-            
-            // Clear form
             document.getElementById('new-user-name').value = '';
             document.getElementById('new-user-email').value = '';
             document.getElementById('new-user-phone').value = '';
-            document.getElementById('new-user-xoox').value = '0';
-            document.getElementById('new-user-inr').value = '0';
+            document.getElementById('new-user-xoox').value = 0;
+            document.getElementById('new-user-inr').value = 0;
+            document.getElementById('new-user-kyc').value = 'pending';
+            
+            // Update displays
+            updateUsersTable();
+            updateTransactionsTable();
+            updateDashboardStats();
+            
+            alert(`User ${userId} created successfully!`);
         }
         
         // ==================== TRANSACTION FUNCTIONS ====================
         function processTransaction(txId, action) {
-            const tx = transactions.find(t => t.id === txId);
-            if (!tx) return;
+            const transaction = transactions.find(tx => tx.id === txId);
+            if (!transaction) return;
+            
+            const user = users.find(u => u.id === transaction.userId);
+            if (!user) return;
             
             if (action === 'approve') {
-                if (confirm(`Approve ${tx.type} of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount} ${tx.asset} for user ${tx.userId}?`)) {
-                    tx.status = 'completed';
-                    
-                    // If withdrawal, update user balance
-                    if (tx.type === 'withdrawal') {
-                        const user = users.find(u => u.id === tx.userId);
-                        if (user) {
-                            if (tx.asset === 'INR') {
-                                user.inrBalance -= tx.amount;
-                                exchangeBalanceINR -= tx.amount;
-                            } else if (tx.asset === 'XOOX') {
-                                user.xooxBalance -= tx.amount;
-                                exchangeBalanceXOOX -= tx.amount;
-                            }
-                        }
+                transaction.status = 'completed';
+                
+                // For withdrawals, deduct from user balance
+                if (transaction.type === 'withdrawal') {
+                    if (transaction.asset === 'INR') {
+                        user.inrBalance -= transaction.amount;
+                    } else {
+                        user.xooxBalance -= transaction.amount;
                     }
-                    
-                    // Add activity log
-                    activityLogs.push({
-                        timestamp: new Date().toISOString(),
-                        userId: tx.userId,
-                        action: 'Withdrawal Approved',
-                        details: `Withdrawal of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount.toFixed(tx.asset === 'INR' ? 2 : 4)} ${tx.asset} approved by admin`,
-                        amount: tx.asset === 'INR' ? tx.amount : tx.amount * xooxPrice
-                    });
-                    
-                    alert(`Transaction ${txId} approved!`);
                 }
+                
+                alert(`Transaction ${txId} approved.`);
             } else if (action === 'reject') {
-                if (confirm(`Reject ${tx.type} of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount} ${tx.asset} for user ${tx.userId}?`)) {
-                    tx.status = 'failed';
-                    
-                    // Add activity log
-                    activityLogs.push({
-                        timestamp: new Date().toISOString(),
-                        userId: tx.userId,
-                        action: 'Withdrawal Rejected',
-                        details: `Withdrawal of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount.toFixed(tx.asset === 'INR' ? 2 : 4)} ${tx.asset} rejected by admin`,
-                        amount: tx.asset === 'INR' ? tx.amount : tx.amount * xooxPrice
-                    });
-                    
-                    alert(`Transaction ${txId} rejected!`);
-                }
+                transaction.status = 'failed';
+                alert(`Transaction ${txId} rejected.`);
             }
             
-            updateAllDisplays();
+            // Update displays
+            updateTransactionsTable();
+            updateUsersTable();
         }
         
         function viewTransaction(txId) {
-            const tx = transactions.find(t => t.id === txId);
-            if (!tx) return;
+            const transaction = transactions.find(tx => tx.id === txId);
+            if (!transaction) {
+                alert('Transaction not found.');
+                return;
+            }
             
-            const user = users.find(u => u.id === tx.userId);
-            const date = new Date(tx.timestamp);
+            const user = users.find(u => u.id === transaction.userId) || { name: 'Unknown User' };
+            const date = new Date(transaction.timestamp);
             
             alert(`Transaction Details:\n\n` +
-                  `ID: ${tx.id}\n` +
-                  `Type: ${tx.type}\n` +
-                  `User: ${user ? user.name : tx.userId} (${tx.userId})\n` +
-                  `Amount: ${tx.asset === 'INR' ? '₹' : ''}${tx.amount.toLocaleString()} ${tx.asset}\n` +
-                  `Details: ${tx.details}\n` +
-                  `Status: ${tx.status}\n` +
-                  `Fee: ₹${tx.fee.toFixed(2)}\n` +
-                  `Date: ${date.toLocaleString()}\n\n` +
-                  `In a real application, this would open a detailed view.`);
+                  `ID: ${transaction.id}\n` +
+                  `Type: ${transaction.type}\n` +
+                  `User: ${user.name} (${transaction.userId})\n` +
+                  `Amount: ${transaction.amount} ${transaction.asset}\n` +
+                  `Status: ${transaction.status}\n` +
+                  `Date: ${date.toLocaleString()}\n` +
+                  `Details: ${transaction.details}\n` +
+                  `Fee: ${transaction.fee || 0} ${transaction.asset === 'INR' ? '₹' : ''}`);
         }
         
-        // ==================== TRADING FUNCTIONS ====================
-        function cancelOrder(orderId) {
-            const order = orders.find(o => o.id === orderId);
-            if (!order) return;
-            
-            if (confirm(`Cancel ${order.type} order for ${order.amount} XOOX at ₹${order.price}?\nTotal: ₹${order.total}`)) {
-                order.status = 'cancelled';
-                
-                // Add activity log
-                activityLogs.push({
-                    timestamp: new Date().toISOString(),
-                    userId: order.userId,
-                    action: 'Order Cancelled',
-                    details: `${order.type.toUpperCase()} order for ${order.amount} XOOX cancelled by admin`,
-                    amount: order.total
-                });
-                
-                alert(`Order ${orderId} cancelled!`);
-                updateAllDisplays();
-            }
+        // ==================== MODAL FUNCTIONS ====================
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
         }
         
-        function placeOrder() {
-            const type = document.getElementById('order-type').value;
-            const userId = document.getElementById('order-user-id').value.trim();
-            const price = parseFloat(document.getElementById('order-price').value);
-            const amount = parseFloat(document.getElementById('order-amount').value);
-            const execution = document.getElementById('order-execution').value;
-            
-            if (!userId) {
-                alert('Please enter a user ID');
-                return;
-            }
-            
-            const user = users.find(u => u.id === userId);
-            if (!user) {
-                alert(`User ${userId} not found`);
-                return;
-            }
-            
-            if (user.accountStatus !== 'active') {
-                alert(`User ${userId} account is ${user.accountStatus}. Cannot place orders.`);
-                return;
-            }
-            
-            if (isNaN(price) || price <= 0) {
-                alert('Please enter a valid price');
-                return;
-            }
-            
-            if (isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount');
-                return;
-            }
-            
-            const total = price * amount;
-            
-            // Check user balance
-            if (type === 'buy') {
-                if (user.inrBalance < total) {
-                    alert(`User ${userId} has insufficient INR balance.\nRequired: ₹${total.toFixed(2)}\nAvailable: ₹${user.inrBalance.toFixed(2)}`);
-                    return;
-                }
-            } else if (type === 'sell') {
-                if (user.xooxBalance < amount) {
-                    alert(`User ${userId} has insufficient XOOX balance.\nRequired: ${amount.toFixed(4)} XOOX\nAvailable: ${user.xooxBalance.toFixed(4)} XOOX`);
-                    return;
-                }
-            }
-            
-            const orderId = `ORD-${nextOrderId++}`;
-            const order = {
-                id: orderId,
-                userId: userId,
-                type: type,
-                price: price,
-                amount: amount,
-                total: total,
-                status: 'open',
-                timestamp: new Date().toISOString(),
-                filled: 0,
-                execution: execution
-            };
-            
-            orders.push(order);
-            
-            // Lock funds
-            if (type === 'buy') {
-                user.inrBalance -= total;
-            } else if (type === 'sell') {
-                user.xooxBalance -= amount;
-            }
-            
-            // Add activity log
-            activityLogs.push({
-                timestamp: new Date().toISOString(),
-                userId: userId,
-                action: 'Order Placed',
-                details: `${type.toUpperCase()} order for ${amount.toFixed(4)} XOOX at ₹${price.toFixed(2)}`,
-                amount: total
-            });
-            
-            alert(`Order placed successfully!\nOrder ID: ${orderId}\n${type.toUpperCase()} ${amount.toFixed(4)} XOOX at ₹${price.toFixed(2)}\nTotal: ₹${total.toFixed(2)}`);
-            closeModal('place-order-modal');
-            updateAllDisplays();
-        }
-        
-        function calculateOrderTotal() {
-            const price = parseFloat(document.getElementById('order-price').value) || 0;
-            const amount = parseFloat(document.getElementById('order-amount').value) || 0;
-            const total = price * amount;
-            document.getElementById('order-total').value = isNaN(total) ? '0' : total.toFixed(2);
-        }
-        
-        // ==================== SECURITY FUNCTIONS ====================
-        function emergencyLockdown() {
-            if (confirm('EMERGENCY LOCKDOWN\n\nAre you sure? This will:\n• Freeze ALL withdrawals\n• Disable trading\n• Suspend new deposits\n• Put exchange in maintenance mode\n\nThis action requires senior admin approval.')) {
-                // Suspend all users
-                users.forEach(user => {
-                    user.accountStatus = 'suspended';
-                });
-                
-                // Cancel all open orders
-                orders.forEach(order => {
-                    if (order.status === 'open') {
-                        order.status = 'cancelled';
-                    }
-                });
-                
-                // Update system status
-                document.getElementById('system-status').textContent = 'LOCKDOWN';
-                document.getElementById('system-status').style.color = 'var(--danger)';
-                
-                // Add security log
-                securityLogs.push({
-                    id: `SEC-${securityLogs.length + 2000}`,
-                    timestamp: new Date().toISOString(),
-                    eventType: 'emergency_lockdown',
-                    userId: 'ALL',
-                    ipAddress: 'ADMIN',
-                    location: 'Admin Panel',
-                    status: 'critical',
-                    details: 'EMERGENCY LOCKDOWN ACTIVATED BY ADMIN'
-                });
-                
-                // Broadcast alert
-                alert('EMERGENCY LOCKDOWN ACTIVATED!\n\nAll trading suspended.\nAll withdrawals frozen.\nExchange in maintenance mode.');
-                updateAllDisplays();
-            }
-        }
-        
-        function terminateSession(userId) {
-            if (confirm(`Terminate active session for user ${userId}?`)) {
-                const index = activeSessions.findIndex(s => s.userId === userId);
-                if (index !== -1) {
-                    activeSessions.splice(index, 1);
-                    
-                    // Add security log
-                    securityLogs.push({
-                        id: `SEC-${securityLogs.length + 2000}`,
-                        timestamp: new Date().toISOString(),
-                        eventType: 'session_terminated',
-                        userId: userId,
-                        ipAddress: 'ADMIN',
-                        location: 'Admin Panel',
-                        status: 'success',
-                        details: 'Active session terminated by admin'
-                    });
-                    
-                    alert(`Session terminated for user ${userId}`);
-                    updateAllDisplays();
-                }
-            }
-        }
-        
-        function terminateAllSessions() {
-            if (confirm('Terminate ALL active sessions? All users will be logged out.')) {
-                activeSessions = [];
-                
-                // Add security log
-                securityLogs.push({
-                    id: `SEC-${securityLogs.length + 2000}`,
-                    timestamp: new Date().toISOString(),
-                    eventType: 'all_sessions_terminated',
-                    userId: 'ALL',
-                    ipAddress: 'ADMIN',
-                    location: 'Admin Panel',
-                    status: 'success',
-                    details: 'All active sessions terminated by admin'
-                });
-                
-                alert('All active sessions terminated!');
-                updateAllDisplays();
-            }
-        }
-        
-        // ==================== SYSTEM FUNCTIONS ====================
-        function updateXooxPrice() {
-            const newPrice = parseFloat(document.getElementById('xoox-price-input').value);
-            if (isNaN(newPrice) || newPrice <= 0) {
-                alert('Please enter a valid price');
-                return;
-            }
-            
-            const oldPrice = xooxPrice;
-            xooxPrice = newPrice;
-            
-            // Add activity log
-            activityLogs.push({
-                timestamp: new Date().toISOString(),
-                userId: 'SYSTEM',
-                action: 'Price Update',
-                details: `XOOX price updated from ₹${oldPrice.toFixed(2)} to ₹${newPrice.toFixed(2)}`,
-                amount: 0
-            });
-            
-            // Add security log
-            securityLogs.push({
-                id: `SEC-${securityLogs.length + 2000}`,
-                timestamp: new Date().toISOString(),
-                eventType: 'price_update',
-                userId: 'SYSTEM',
-                ipAddress: 'ADMIN',
-                location: 'Admin Panel',
-                status: 'success',
-                details: `XOOX price updated to ₹${newPrice.toFixed(2)}`
-            });
-            
-            alert(`XOOX price updated to ₹${newPrice.toFixed(2)}`);
-            updateDashboardStats();
-            updateFinancialStats();
-        }
-        
-        function toggleMaintenanceMode() {
-            const maintenanceMode = document.getElementById('maintenance-mode').checked;
-            const status = maintenanceMode ? 'MAINTENANCE' : 'Online';
-            const color = maintenanceMode ? 'var(--warning)' : 'var(--success)';
-            
-            document.getElementById('system-status').textContent = status;
-            document.getElementById('system-status').style.color = color;
-            
-            // Add security log
-            securityLogs.push({
-                id: `SEC-${securityLogs.length + 2000}`,
-                timestamp: new Date().toISOString(),
-                eventType: 'maintenance_mode',
-                userId: 'SYSTEM',
-                ipAddress: 'ADMIN',
-                location: 'Admin Panel',
-                status: 'success',
-                details: `Maintenance mode ${maintenanceMode ? 'enabled' : 'disabled'}`
-            });
-            
-            alert(`Maintenance mode ${maintenanceMode ? 'enabled' : 'disabled'}`);
-        }
-        
-        function saveSystemConfig() {
-            tradingFee = parseFloat(document.getElementById('fee-slider').value);
-            document.getElementById('fee-value').textContent = `${tradingFee}%`;
-            
-            // Add activity log
-            activityLogs.push({
-                timestamp: new Date().toISOString(),
-                userId: 'SYSTEM',
-                action: 'Config Update',
-                details: `System configuration updated. Trading fee: ${tradingFee}%`,
-                amount: 0
-            });
-            
-            alert('System configuration saved!');
-        }
-        
-        function sendBroadcast() {
-            const title = document.getElementById('broadcast-title').value.trim();
-            const message = document.getElementById('broadcast-message').value.trim();
-            const type = document.getElementById('broadcast-type').value;
-            
-            if (!title || !message) {
-                alert('Please enter a title and message');
-                return;
-            }
-            
-            const targetAll = document.getElementById('broadcast-all').checked;
-            const targetVerified = document.getElementById('broadcast-verified').checked;
-            const targetUnverified = document.getElementById('broadcast-unverified').checked;
-            
-            let targetCount = 0;
-            if (targetAll) targetCount = users.length;
-            else if (targetVerified || targetUnverified) {
-                targetCount = users.filter(user => 
-                    (targetVerified && user.kycStatus === 'verified') ||
-                    (targetUnverified && user.kycStatus !== 'verified')
-                ).length;
-            }
-            
-            // Add activity log
-            activityLogs.push({
-                timestamp: new Date().toISOString(),
-                userId: 'BROADCAST',
-                action: 'Broadcast',
-                details: `${type}: ${title}`,
-                amount: 0
-            });
-            
-            // Add security log
-            securityLogs.push({
-                id: `SEC-${securityLogs.length + 2000}`,
-                timestamp: new Date().toISOString(),
-                eventType: 'broadcast',
-                userId: 'ALL',
-                ipAddress: 'ADMIN',
-                location: 'Admin Panel',
-                status: 'success',
-                details: `Broadcast sent: ${title}`
-            });
-            
-            alert(`Broadcast sent successfully!\n\nTitle: ${title}\nType: ${type}\nRecipients: ${targetCount} users\n\nMessage will appear in users' notification center.`);
-            closeModal('broadcast-modal');
-            
-            // Clear form
-            document.getElementById('broadcast-title').value = '';
-            document.getElementById('broadcast-message').value = '';
-        }
-        
-        // ==================== UTILITY FUNCTIONS ====================
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
         
-        function searchUsers() {
-            const searchTerm = document.getElementById('user-search').value.toLowerCase();
-            const rows = document.querySelectorAll('#users-table-body tr');
+        // ==================== SYSTEM FUNCTIONS ====================
+        function setXooxBalance() {
+            const userId = document.getElementById('edit-user-id').value;
+            const newBalance = parseFloat(document.getElementById('edit-xoox-balance').value);
             
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
+            if (isNaN(newBalance) || newBalance < 0) {
+                alert('Please enter a valid XOOX balance.');
+                return;
+            }
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            user.xooxBalance = newBalance;
+            alert('XOOX balance updated.');
         }
         
-        function searchTransactions() {
-            const searchTerm = document.getElementById('tx-search').value.toLowerCase();
-            const typeFilter = document.getElementById('tx-type-filter').value;
-            const rows = document.querySelectorAll('#transactions-table-body tr');
+        function setInrBalance() {
+            const userId = document.getElementById('edit-user-id').value;
+            const newBalance = parseFloat(document.getElementById('edit-inr-balance').value);
             
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const type = row.cells[1].textContent.toLowerCase();
-                
-                const matchesSearch = !searchTerm || text.includes(searchTerm);
-                const matchesType = typeFilter === 'all' || type.includes(typeFilter);
-                
-                row.style.display = (matchesSearch && matchesType) ? '' : 'none';
-            });
+            if (isNaN(newBalance) || newBalance < 0) {
+                alert('Please enter a valid INR balance.');
+                return;
+            }
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            user.inrBalance = newBalance;
+            alert('INR balance updated.');
         }
         
-        function searchActivity() {
-            const searchTerm = document.getElementById('activity-search').value.toLowerCase();
-            const rows = document.querySelectorAll('#activity-body tr');
+        function quickAdjust(asset, action, amount) {
+            const userId = document.getElementById('edit-user-id').value;
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
             
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
+            if (asset === 'XOOX') {
+                if (action === 'add') {
+                    user.xooxBalance += amount;
+                } else {
+                    user.xooxBalance = Math.max(0, user.xooxBalance - amount);
+                }
+                document.getElementById('edit-xoox-balance').value = user.xooxBalance;
+            } else {
+                if (action === 'add') {
+                    user.inrBalance += amount;
+                } else {
+                    user.inrBalance = Math.max(0, user.inrBalance - amount);
+                }
+                document.getElementById('edit-inr-balance').value = user.inrBalance;
+            }
         }
         
         // ==================== EVENT LISTENERS ====================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up event listeners...');
+            
             // Add shake animation
             const style = document.createElement('style');
             style.textContent = `
@@ -3520,12 +2871,21 @@
             document.head.appendChild(style);
             
             // Login form submission
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+                console.log('Login form event listener added');
+            } else {
+                console.error('Login form not found');
+            }
             
             // Logout button
-            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', handleLogout);
+            }
             
-            // Tab switching (only when logged in)
+            // Tab switching
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     if (!isLoggedIn) return;
@@ -3536,8 +2896,11 @@
                     
                     this.classList.add('active');
                     const tabId = this.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active');
-                    document.getElementById('page-title').textContent = this.querySelector('span').textContent;
+                    const tabElement = document.getElementById(tabId);
+                    if (tabElement) {
+                        tabElement.classList.add('active');
+                        document.getElementById('page-title').textContent = this.querySelector('span').textContent;
+                    }
                 });
             });
             
@@ -3568,129 +2931,157 @@
                 }
             }
             
-            // Button event listeners (only work when logged in)
-            document.getElementById('broadcast-btn').addEventListener('click', () => {
-                if (!isLoggedIn) return;
-                document.getElementById('broadcast-modal').style.display = 'flex';
-            });
+            // Setup button event listeners
+            setupButtonListeners();
+            console.log('All event listeners set up');
+        });
+        
+        function setupButtonListeners() {
+            // Add User button
+            const addUserBtn = document.getElementById('add-user-btn');
+            if (addUserBtn) {
+                addUserBtn.addEventListener('click', function() {
+                    if (!isLoggedIn) return;
+                    openModal('add-user-modal');
+                });
+            }
             
-            document.getElementById('add-user-btn').addEventListener('click', () => {
-                if (!isLoggedIn) return;
-                document.getElementById('add-user-modal').style.display = 'flex';
-            });
+            // Create User button
+            const createUserBtn = document.getElementById('create-user-btn');
+            if (createUserBtn) {
+                createUserBtn.addEventListener('click', createNewUser);
+            }
             
-            document.getElementById('create-user-btn').addEventListener('click', createNewUser);
+            // Broadcast button
+            const broadcastBtn = document.getElementById('broadcast-btn');
+            if (broadcastBtn) {
+                broadcastBtn.addEventListener('click', function() {
+                    if (!isLoggedIn) return;
+                    openModal('broadcast-modal');
+                });
+            }
             
-            document.getElementById('apply-adjustment-btn').addEventListener('click', applyAdjustment);
-            
-            // Update balance preview when adjustment inputs change
-            document.getElementById('adjust-asset').addEventListener('change', updateBalancePreview);
-            document.getElementById('adjust-action').addEventListener('change', updateBalancePreview);
-            document.getElementById('adjust-amount').addEventListener('input', updateBalancePreview);
-            
-            document.getElementById('save-balance-btn').addEventListener('click', saveAllBalanceChanges);
-            
-            document.getElementById('send-broadcast-btn').addEventListener('click', sendBroadcast);
-            
-            document.getElementById('place-order-btn').addEventListener('click', () => {
-                if (!isLoggedIn) return;
-                document.getElementById('place-order-modal').style.display = 'flex';
-            });
-            
-            document.getElementById('submit-order-btn').addEventListener('click', placeOrder);
-            
-            document.getElementById('order-price').addEventListener('input', calculateOrderTotal);
-            document.getElementById('order-amount').addEventListener('input', calculateOrderTotal);
-            
-            document.getElementById('lockdown-btn').addEventListener('click', emergencyLockdown);
-            
-            document.getElementById('terminate-all-btn').addEventListener('click', terminateAllSessions);
-            
-            document.getElementById('update-price-btn').addEventListener('click', updateXooxPrice);
-            
-            document.getElementById('maintenance-mode').addEventListener('change', toggleMaintenanceMode);
-            
-            document.getElementById('save-config-btn').addEventListener('click', saveSystemConfig);
-            
-            document.getElementById('fee-slider').addEventListener('input', function() {
-                document.getElementById('fee-value').textContent = `${this.value}%`;
-            });
-            
-            // Search functionality
-            document.getElementById('user-search').addEventListener('input', searchUsers);
-            document.getElementById('tx-search').addEventListener('input', searchTransactions);
-            document.getElementById('tx-type-filter').addEventListener('change', searchTransactions);
-            document.getElementById('activity-search').addEventListener('input', searchActivity);
-            
-            // Refresh buttons
-            document.getElementById('refresh-health').addEventListener('click', () => {
-                alert('System health refreshed!');
-            });
-            
-            document.getElementById('refresh-trades').addEventListener('click', () => {
-                updateRecentTrades();
-                alert('Trade data refreshed!');
-            });
-            
-            // Export buttons
-            document.getElementById('export-users-btn').addEventListener('click', () => {
-                alert('User data exported to CSV!\n\nIn a real application, this would download a CSV file.');
-            });
-            
-            document.getElementById('export-financial-btn').addEventListener('click', () => {
-                alert('Financial report exported to PDF!\n\nIn a real application, this would generate a PDF report.');
-            });
-            
-            // Other system buttons
-            document.getElementById('api-keys-btn').addEventListener('click', () => {
-                alert('API Key Management\n\nIn a real application, this would open API key management interface.');
-            });
-            
-            document.getElementById('run-backup-btn').addEventListener('click', () => {
-                alert('Backup initiated!\n\nDatabase backup in progress. This may take a few minutes.');
-            });
-            
-            document.getElementById('view-analytics-btn').addEventListener('click', () => {
-                alert('Analytics Dashboard\n\nIn a real application, this would open advanced analytics dashboard.');
-            });
-            
-            // Simulate real-time updates (only when logged in)
-            setInterval(() => {
-                if (!isLoggedIn) return;
-                
-                // Randomly update XOOX price
-                const change = (Math.random() - 0.5) * 0.02; // ±1%
-                xooxPrice *= (1 + change);
-                xooxPrice = Math.max(50, Math.min(200, xooxPrice)); // Keep between ₹50-₹200
-                
-                // Update display
-                updateDashboardStats();
-                updateFinancialStats();
-                
-                // Randomly add new activity
-                if (Math.random() > 0.7) {
-                    const userId = (Math.floor(Math.random() * users.length) + 1).toString().padStart(5, '0');
-                    const actions = ['Login', 'Trade', 'Deposit', 'Withdrawal', 'Order Placed'];
-                    const action = actions[Math.floor(Math.random() * actions.length)];
+            // Send Broadcast button
+            const sendBroadcastBtn = document.getElementById('send-broadcast-btn');
+            if (sendBroadcastBtn) {
+                sendBroadcastBtn.addEventListener('click', function() {
+                    const title = document.getElementById('broadcast-title').value;
+                    const message = document.getElementById('broadcast-message').value;
                     
-                    activityLogs.push({
-                        timestamp: new Date().toISOString(),
-                        userId: userId,
-                        action: action,
-                        details: `Simulated ${action.toLowerCase()} activity`,
-                        amount: action === 'Trade' || action === 'Deposit' || action === 'Withdrawal' ? 
-                            parseFloat((Math.random() * 50000).toFixed(2)) : 0
-                    });
-                    
-                    // Keep only last 50 activities
-                    if (activityLogs.length > 50) {
-                        activityLogs.shift();
+                    if (!title || !message) {
+                        alert('Please enter both title and message.');
+                        return;
                     }
                     
-                    updateActivityLogs();
-                }
-            }, 30000); // Update every 30 seconds
-        });
+                    alert('Broadcast sent to all users!');
+                    closeModal('broadcast-modal');
+                    
+                    // Reset form
+                    document.getElementById('broadcast-title').value = '';
+                    document.getElementById('broadcast-message').value = '';
+                });
+            }
+            
+            // Update XOOX Price button
+            const updatePriceBtn = document.getElementById('update-price-btn');
+            if (updatePriceBtn) {
+                updatePriceBtn.addEventListener('click', function() {
+                    const newPrice = parseFloat(document.getElementById('xoox-price-input').value);
+                    
+                    if (isNaN(newPrice) || newPrice <= 0) {
+                        alert('Please enter a valid price.');
+                        return;
+                    }
+                    
+                    xooxPrice = newPrice;
+                    updateDashboardStats();
+                    alert(`XOOX price updated to ₹${newPrice.toFixed(2)}`);
+                });
+            }
+            
+            // Trading fee slider
+            const feeSlider = document.getElementById('fee-slider');
+            const feeValue = document.getElementById('fee-value');
+            if (feeSlider && feeValue) {
+                feeSlider.addEventListener('input', function() {
+                    tradingFee = parseFloat(this.value);
+                    feeValue.textContent = `${tradingFee}%`;
+                });
+            }
+            
+            // Apply Adjustment button
+            const applyAdjustmentBtn = document.getElementById('apply-adjustment-btn');
+            if (applyAdjustmentBtn) {
+                applyAdjustmentBtn.addEventListener('click', function() {
+                    const userId = document.getElementById('adjust-user-id').value;
+                    const amount = parseFloat(document.getElementById('adjust-amount').value);
+                    const asset = document.getElementById('adjust-asset').value;
+                    const action = document.getElementById('adjust-action').value;
+                    const reason = document.getElementById('adjust-reason').value;
+                    
+                    if (isNaN(amount) || amount <= 0) {
+                        alert('Please enter a valid amount.');
+                        return;
+                    }
+                    
+                    const user = users.find(u => u.id === userId);
+                    if (!user) return;
+                    
+                    // Apply adjustment
+                    if (asset === 'XOOX') {
+                        if (action === 'add') user.xooxBalance += amount;
+                        else if (action === 'subtract') user.xooxBalance = Math.max(0, user.xooxBalance - amount);
+                        else if (action === 'set') user.xooxBalance = amount;
+                    } else {
+                        if (action === 'add') user.inrBalance += amount;
+                        else if (action === 'subtract') user.inrBalance = Math.max(0, user.inrBalance - amount);
+                        else if (action === 'set') user.inrBalance = amount;
+                    }
+                    
+                    // Record transaction
+                    transactions.push({
+                        id: `TX-${nextTxId++}`,
+                        type: 'adjustment',
+                        userId: userId,
+                        amount: amount,
+                        asset: asset,
+                        details: reason || 'Admin adjustment',
+                        status: 'completed',
+                        timestamp: new Date().toISOString(),
+                        fee: 0
+                    });
+                    
+                    // Close modal and update displays
+                    closeModal('adjust-balance-modal');
+                    updateUsersTable();
+                    updateTransactionsTable();
+                    
+                    alert('Balance adjustment applied successfully!');
+                });
+            }
+            
+            // Save Balance button
+            const saveBalanceBtn = document.getElementById('save-balance-btn');
+            if (saveBalanceBtn) {
+                saveBalanceBtn.addEventListener('click', function() {
+                    const userId = document.getElementById('edit-user-id').value;
+                    const reason = document.getElementById('edit-reason').value;
+                    
+                    if (!reason.trim()) {
+                        alert('Please enter a reason for the changes.');
+                        return;
+                    }
+                    
+                    // Close modal and update displays
+                    closeModal('edit-balance-modal');
+                    updateUsersTable();
+                    
+                    alert('Balance changes saved successfully!');
+                });
+            }
+        }
+        
+        console.log('JavaScript loaded successfully');
     </script>
 </body>
 </html>
