@@ -204,6 +204,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
         
         th {
@@ -219,11 +220,25 @@
             padding: 15px 20px;
             border-bottom: 1px solid #30363d;
             color: #c9d1d9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         tr:hover {
             background: rgba(56, 139, 253, 0.05);
         }
+        
+        /* Table column widths */
+        th:nth-child(1), td:nth-child(1) { width: 10%; } /* User ID */
+        th:nth-child(2), td:nth-child(2) { width: 15%; } /* Name */
+        th:nth-child(3), td:nth-child(3) { width: 20%; } /* Email */
+        th:nth-child(4), td:nth-child(4) { width: 12%; } /* XOOX Balance */
+        th:nth-child(5), td:nth-child(5) { width: 12%; } /* INR Balance */
+        th:nth-child(6), td:nth-child(6) { width: 10%; } /* KYC Status */
+        th:nth-child(7), td:nth-child(7) { width: 10%; } /* Account Status */
+        th:nth-child(8), td:nth-child(8) { width: 8%; } /* Joined */
+        th:nth-child(9), td:nth-child(9) { width: 13%; } /* Actions */
         
         /* Buttons */
         .btn {
@@ -272,6 +287,7 @@
         .action-btns {
             display: flex;
             gap: 8px;
+            justify-content: flex-start;
         }
         
         /* Status indicators */
@@ -280,6 +296,8 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
         }
         
         .status-active {
@@ -302,11 +320,42 @@
             color: #2962ff;
         }
         
+        .status-rejected {
+            background: rgba(155, 39, 176, 0.2);
+            color: #9c27b0;
+        }
+        
+        .status-deposit {
+            background: rgba(0, 150, 136, 0.2);
+            color: #009688;
+        }
+        
+        .status-withdrawal {
+            background: rgba(233, 30, 99, 0.2);
+            color: #e91e63;
+        }
+        
+        .status-trade {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+        }
+        
+        .status-completed {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        
+        .status-failed {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        
         /* Tabs */
         .tabs {
             display: flex;
             border-bottom: 1px solid #30363d;
             margin-bottom: 20px;
+            overflow-x: auto;
         }
         
         .tab {
@@ -314,6 +363,7 @@
             cursor: pointer;
             border-bottom: 3px solid transparent;
             font-weight: 600;
+            white-space: nowrap;
         }
         
         .tab.active {
@@ -400,6 +450,7 @@
             border-radius: 4px;
             font-family: monospace;
             font-size: 14px;
+            display: inline-block;
         }
         
         /* Balance display */
@@ -452,6 +503,15 @@
             .menu-item i {
                 margin-right: 0;
             }
+            
+            th:nth-child(3), td:nth-child(3) { display: none; } /* Hide email on smaller screens */
+            th:nth-child(2), td:nth-child(2) { width: 20%; } /* Expand name */
+        }
+        
+        @media (max-width: 992px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         @media (max-width: 768px) {
@@ -468,6 +528,16 @@
             .search-box {
                 width: 100%;
             }
+            
+            th:nth-child(8), td:nth-child(8) { display: none; } /* Hide joined date */
+            th:nth-child(5), td:nth-child(5) { width: 15%; } /* Adjust balance width */
+        }
+        
+        @media (max-width: 576px) {
+            th:nth-child(4), td:nth-child(4) { display: none; } /* Hide XOOX balance */
+            th:nth-child(6), td:nth-child(6) { display: none; } /* Hide KYC status */
+            th:nth-child(7), td:nth-child(7) { width: 15%; } /* Adjust status width */
+            th:nth-child(9), td:nth-child(9) { width: 20%; } /* Adjust actions width */
         }
     </style>
 </head>
@@ -548,7 +618,7 @@
             <div class="stats-container">
                 <div class="stat-card">
                     <h3>Total Users</h3>
-                    <div class="value" id="total-users">1,247</div>
+                    <div class="value" id="total-users">100</div>
                     <div class="change positive"><i class="fas fa-arrow-up"></i> 42 this week</div>
                 </div>
                 
@@ -649,12 +719,12 @@
                 <div class="tab active" data-subtab="all-users">All Users</div>
                 <div class="tab" data-subtab="kyc-pending">KYC Pending</div>
                 <div class="tab" data-subtab="suspended">Suspended Accounts</div>
-                <div class="tab" data-subtab="whales">Top Holders</div>
+                <div class="tab" data-subtab="top-holders">Top Holders</div>
             </div>
             
             <div class="table-container">
                 <div class="table-header">
-                    <h3>User Management</h3>
+                    <h3 id="users-table-title">User Management</h3>
                     <div>
                         <input type="text" class="search-box" placeholder="Search users..." id="user-search">
                         <button class="btn btn-primary" id="add-user-btn"><i class="fas fa-plus"></i> Add User</button>
@@ -687,16 +757,16 @@
             <div class="tabs">
                 <div class="tab active" data-subtab="all-tx">All Transactions</div>
                 <div class="tab" data-subtab="pending">Pending Withdrawals</div>
-                <div class="tab" data-subtab="deposits">Deposits</div>
-                <div class="tab" data-subtab="trades">Trades</div>
+                <div class="tab" data-subtab="deposits">Recent Deposits</div>
+                <div class="tab" data-subtab="trades">Recent Trades</div>
             </div>
             
             <div class="table-container">
                 <div class="table-header">
-                    <h3>Transaction History</h3>
+                    <h3 id="transactions-table-title">Transaction History</h3>
                     <div>
                         <input type="text" class="search-box" placeholder="Search TX ID or User..." id="tx-search">
-                        <select class="form-control" style="width: 150px; display: inline-block;" id="tx-type-filter">
+                        <select class="form-control" style="width: 150px; display: inline-block; margin-left: 10px;" id="tx-type-filter">
                             <option value="all">All Types</option>
                             <option value="deposit">Deposit</option>
                             <option value="withdrawal">Withdrawal</option>
@@ -1100,7 +1170,7 @@
     <div id="adjust-balance-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Adjust User Balance</h3>
+                <h3 id="adjust-balance-title">Adjust User Balance</h3>
                 <button class="close-modal" onclick="closeModal('adjust-balance-modal')">&times;</button>
             </div>
             <div class="modal-body">
@@ -1110,7 +1180,25 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Asset</label>
+                    <label>User Name</label>
+                    <input type="text" class="form-control" id="adjust-user-name" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <div style="flex: 1; padding-right: 10px;">
+                            <label>Current XOOX Balance</label>
+                            <input type="text" class="form-control" id="current-xoox-balance" readonly style="background: #1a237e; color: white;">
+                        </div>
+                        <div style="flex: 1; padding-left: 10px;">
+                            <label>Current INR Balance</label>
+                            <input type="text" class="form-control" id="current-inr-balance" readonly style="background: #1a237e; color: white;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Asset to Adjust</label>
                     <select class="form-control" id="adjust-asset">
                         <option value="XOOX">XOOX Coin</option>
                         <option value="INR">Indian Rupee (INR)</option>
@@ -1118,25 +1206,95 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Action</label>
+                    <label>Adjustment Type</label>
                     <select class="form-control" id="adjust-action">
-                        <option value="deposit">Deposit (Add to user)</option>
-                        <option value="withdraw">Withdraw (Remove from user)</option>
-                        <option value="set">Set (Specific amount)</option>
+                        <option value="add">Add (Deposit to user)</option>
+                        <option value="subtract">Subtract (Withdraw from user)</option>
+                        <option value="set">Set Specific Amount</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label>Amount</label>
-                    <input type="number" class="form-control" id="adjust-amount" placeholder="Enter amount" step="0.0001">
+                    <input type="number" class="form-control" id="adjust-amount" placeholder="Enter amount" step="0.0001" min="0">
                 </div>
                 
                 <div class="form-group">
-                    <label>Reason (Optional)</label>
-                    <input type="text" class="form-control" id="adjust-reason" placeholder="Enter reason for adjustment">
+                    <label>New Balance (Calculated)</label>
+                    <input type="text" class="form-control" id="new-balance-preview" readonly style="background: #2e7d32; color: white; font-weight: bold;">
                 </div>
                 
-                <button class="btn btn-primary" style="width: 100%;" id="apply-adjustment-btn">Apply Adjustment</button>
+                <div class="form-group">
+                    <label>Reason for Adjustment</label>
+                    <textarea class="form-control" id="adjust-reason" placeholder="Enter reason for adjustment (optional)" rows="2"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="send-notification"> Send notification to user about this adjustment
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('adjust-balance-modal')">Cancel</button>
+                    <button class="btn btn-primary" style="flex: 2;" id="apply-adjustment-btn">Apply Adjustment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="edit-balance-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="edit-balance-title">Edit User Balance</h3>
+                <button class="close-modal" onclick="closeModal('edit-balance-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" class="form-control" id="edit-user-id" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>User Name</label>
+                    <input type="text" class="form-control" id="edit-user-name" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Current XOOX Balance</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" class="form-control" id="edit-xoox-balance" step="0.0001" min="0">
+                        <button class="btn btn-secondary" onclick="setXooxBalance()">Set</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Current INR Balance</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" class="form-control" id="edit-inr-balance" step="0.01" min="0">
+                        <button class="btn btn-secondary" onclick="setInrBalance()">Set</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Quick Adjustments</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                        <button class="btn btn-sm btn-success" onclick="quickAdjust('XOOX', 'add', 10)">+10 XOOX</button>
+                        <button class="btn btn-sm btn-success" onclick="quickAdjust('INR', 'add', 1000)">+₹1,000</button>
+                        <button class="btn btn-sm btn-danger" onclick="quickAdjust('XOOX', 'subtract', 10)">-10 XOOX</button>
+                        <button class="btn btn-sm btn-danger" onclick="quickAdjust('INR', 'subtract', 1000)">-₹1,000</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Reason for Changes</label>
+                    <textarea class="form-control" id="edit-reason" placeholder="Enter reason for balance changes" rows="2"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('edit-balance-modal')">Cancel</button>
+                    <button class="btn btn-primary" style="flex: 2;" id="save-balance-btn">Save All Changes</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1249,20 +1407,57 @@
         let exchangeBalanceXOOX = 1485250;
         let exchangeBalanceINR = 28500000;
         
+        // Current view states
+        let currentUsersSubtab = 'all-users';
+        let currentTransactionsSubtab = 'all-tx';
+        
         // ==================== INITIAL DATA SETUP ====================
         function initializeData() {
-            // Initialize mock users (00001 to 00100)
+            // Initialize 100 unique Indian names
+            const uniqueIndianNames = [
+                // Male Names
+                'Aarav Sharma', 'Vihaan Gupta', 'Aditya Patel', 'Vivaan Singh', 'Arjun Kumar',
+                'Sai Reddy', 'Reyansh Joshi', 'Ayaan Mishra', 'Mohammed Khan', 'Krishna Yadav',
+                'Dhruv Nair', 'Atharva Desai', 'Ishaan Choudhury', 'Shaurya Menon', 'Rudra Iyer',
+                'Arnav Verma', 'Yash Tiwari', 'Rohan Mehta', 'Aryan Das', 'Advik Malhotra',
+                'Kabir Srinivasan', 'Pranav Chatterjee', 'Aadi Bansal', 'Viraj Saxena', 'Aarush Bajaj',
+                'Dev Kapoor', 'Siddharth Oberoi', 'Veer Khanna', 'Vihan Bedi', 'Rishi Chawla',
+                'Ayaansh Mehra', 'Kiaan Kapoor', 'Ranveer Dutta', 'Aarav Jain', 'Ishant Roy',
+                'Samar Basu', 'Yuvan Sethi', 'Neil Agarwal', 'Reyansh Bhatia', 'Vihaan Bakshi',
+                'Armaan Dhar', 'Ahaan Ghosh', 'Kian Banerjee', 'Shivansh Sinha', 'Ritvik Acharya',
+                'Parth Kapadia', 'Dhruv Shah', 'Reyan Mukherjee', 'Vedant Sengupta', 'Aarav Pillai',
+                
+                // Female Names
+                'Aadhya Sharma', 'Diya Gupta', 'Ananya Patel', 'Aarohi Singh', 'Ishita Kumar',
+                'Myra Reddy', 'Sara Joshi', 'Navya Mishra', 'Aaradhya Khan', 'Anika Yadav',
+                'Saanvi Nair', 'Anvi Desai', 'Prisha Choudhury', 'Kiara Menon', 'Pari Iyer',
+                'Advika Verma', 'Dhriti Tiwari', 'Aarushi Mehta', 'Kavya Das', 'Vihana Malhotra',
+                'Sia Srinivasan', 'Tanvi Chatterjee', 'Alisha Bansal', 'Anaya Saxena', 'Riya Bajaj',
+                'Aanya Kapoor', 'Pihu Oberoi', 'Saanvi Khanna', 'Anvi Bedi', 'Siya Chawla',
+                'Aaradhya Mehra', 'Myra Kapoor', 'Rhea Dutta', 'Ira Jain', 'Avni Roy',
+                'Aarohi Basu', 'Meera Sethi', 'Suhani Agarwal', 'Aadhya Bhatia', 'Ishani Bakshi',
+                'Sara Dhar', 'Navya Ghosh', 'Anika Banerjee', 'Diya Sinha', 'Kiara Acharya',
+                'Prisha Kapadia', 'Myra Shah', 'Anvi Mukherjee', 'Saanvi Sengupta', 'Aarohi Pillai'
+            ];
+            
+            // Initialize mock users (00001 to 00100) with unique names
             for (let i = 1; i <= 100; i++) {
                 const userId = i.toString().padStart(5, '0');
-                const names = ['Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Singh', 'Vikram Reddy', 
-                              'Anjali Mehta', 'Rahul Verma', 'Pooja Desai', 'Sanjay Nair', 'Kavita Joshi',
-                              'Arun Gupta', 'Deepa Iyer', 'Mohan Das', 'Sunita Choudhury', 'Ravi Menon'];
-                const emails = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'protonmail.com'];
-                const name = names[Math.floor(Math.random() * names.length)];
-                const email = `${name.toLowerCase().replace(' ', '.')}@${emails[Math.floor(Math.random() * emails.length)]}`;
+                const name = uniqueIndianNames[i-1];
+                const nameLower = name.toLowerCase().replace(' ', '.');
+                const emailDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'protonmail.com'];
+                const email = `${nameLower}@${emailDomains[Math.floor(Math.random() * emailDomains.length)]}`;
                 const xooxBalance = parseFloat((Math.random() * 10000).toFixed(4));
                 const inrBalance = parseFloat((Math.random() * 500000).toFixed(2));
-                const kycStatus = Math.random() > 0.3 ? 'verified' : (Math.random() > 0.5 ? 'pending' : 'rejected');
+                
+                // Distribute KYC status: 70% verified, 20% pending, 10% rejected
+                const kycRand = Math.random();
+                let kycStatus;
+                if (kycRand < 0.7) kycStatus = 'verified';
+                else if (kycRand < 0.9) kycStatus = 'pending';
+                else kycStatus = 'rejected';
+                
+                // Distribute account status: 90% active, 10% suspended
                 const accountStatus = Math.random() > 0.1 ? 'active' : 'suspended';
                 const joinedDate = new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
                 
@@ -1283,25 +1478,29 @@
             nextUserId = 101;
             
             // Initialize transactions
+            const txTypes = ['deposit', 'withdrawal', 'trade'];
+            const txStatuses = ['completed', 'pending', 'failed'];
+            
             for (let i = 0; i < 50; i++) {
                 const userId = Math.floor(Math.random() * 100) + 1;
-                const types = ['deposit', 'withdrawal', 'trade'];
-                const type = types[Math.floor(Math.random() * types.length)];
-                let amount, details;
+                const type = txTypes[Math.floor(Math.random() * txTypes.length)];
+                let amount, details, asset;
                 
                 if (type === 'deposit') {
+                    asset = 'INR';
                     amount = parseFloat((Math.random() * 100000).toFixed(2));
-                    details = 'INR Deposit via UPI';
+                    details = 'INR Deposit via UPI/Bank Transfer';
                 } else if (type === 'withdrawal') {
+                    asset = 'INR';
                     amount = parseFloat((Math.random() * 50000).toFixed(2));
-                    details = 'INR Withdrawal to Bank';
+                    details = 'INR Withdrawal to Bank Account';
                 } else {
+                    asset = 'XOOX';
                     amount = parseFloat((Math.random() * 1000).toFixed(4));
-                    details = 'XOOX/INR Trade';
+                    details = 'XOOX/INR Trade Execution';
                 }
                 
-                const statuses = ['completed', 'pending', 'failed'];
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const status = txStatuses[Math.floor(Math.random() * txStatuses.length)];
                 const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000);
                 
                 transactions.push({
@@ -1309,7 +1508,7 @@
                     type: type,
                     userId: userId.toString().padStart(5, '0'),
                     amount: amount,
-                    asset: type === 'trade' ? 'XOOX' : 'INR',
+                    asset: asset,
                     details: details,
                     status: status,
                     timestamp: timestamp.toISOString(),
@@ -1487,7 +1686,34 @@
             const tbody = document.getElementById('users-table-body');
             tbody.innerHTML = '';
             
-            users.forEach(user => {
+            let filteredUsers = [];
+            
+            // Filter users based on current subtab
+            switch(currentUsersSubtab) {
+                case 'all-users':
+                    filteredUsers = users;
+                    document.getElementById('users-table-title').textContent = 'All Users';
+                    break;
+                case 'kyc-pending':
+                    filteredUsers = users.filter(user => user.kycStatus === 'pending');
+                    document.getElementById('users-table-title').textContent = 'KYC Pending Users';
+                    break;
+                case 'suspended':
+                    filteredUsers = users.filter(user => user.accountStatus === 'suspended');
+                    document.getElementById('users-table-title').textContent = 'Suspended Accounts';
+                    break;
+                case 'top-holders':
+                    // Get top 20 holders by total portfolio value
+                    filteredUsers = [...users].sort((a, b) => {
+                        const aValue = (a.xooxBalance * xooxPrice) + a.inrBalance;
+                        const bValue = (b.xooxBalance * xooxPrice) + b.inrBalance;
+                        return bValue - aValue;
+                    }).slice(0, 20);
+                    document.getElementById('users-table-title').textContent = 'Top 20 Holders';
+                    break;
+            }
+            
+            filteredUsers.forEach(user => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><span class="user-id">${user.id}</span></td>
@@ -1505,6 +1731,7 @@
                             <button class="btn btn-sm ${user.accountStatus === 'active' ? 'btn-danger' : 'btn-success'}" onclick="toggleUserStatus('${user.id}')">
                                 <i class="fas fa-${user.accountStatus === 'active' ? 'lock' : 'unlock'}"></i>
                             </button>
+                            <button class="btn btn-sm btn-secondary" onclick="editUserBalance('${user.id}')"><i class="fas fa-edit"></i></button>
                         </div>
                     </td>
                 `;
@@ -1518,7 +1745,40 @@
             const tbody = document.getElementById('transactions-table-body');
             tbody.innerHTML = '';
             
-            transactions.slice(-20).reverse().forEach(tx => {
+            let filteredTransactions = [];
+            
+            // Filter transactions based on current subtab
+            switch(currentTransactionsSubtab) {
+                case 'all-tx':
+                    filteredTransactions = transactions;
+                    document.getElementById('transactions-table-title').textContent = 'All Transactions';
+                    break;
+                case 'pending':
+                    filteredTransactions = transactions.filter(tx => tx.status === 'pending' && tx.type === 'withdrawal');
+                    document.getElementById('transactions-table-title').textContent = 'Pending Withdrawals';
+                    break;
+                case 'deposits':
+                    filteredTransactions = transactions.filter(tx => tx.type === 'deposit' && tx.status === 'completed');
+                    document.getElementById('transactions-table-title').textContent = 'Recent Deposits';
+                    break;
+                case 'trades':
+                    // Convert trades to transaction format for display
+                    filteredTransactions = trades.slice(-20).map(trade => ({
+                        id: trade.id,
+                        type: 'trade',
+                        userId: trade.buyerId,
+                        amount: trade.amount,
+                        asset: 'XOOX',
+                        details: `Trade with ${trade.sellerId}`,
+                        status: 'completed',
+                        timestamp: trade.timestamp,
+                        fee: trade.fee
+                    }));
+                    document.getElementById('transactions-table-title').textContent = 'Recent Trades';
+                    break;
+            }
+            
+            filteredTransactions.slice(-20).reverse().forEach(tx => {
                 const date = new Date(tx.timestamp);
                 const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const dateStr = date.toLocaleDateString();
@@ -1766,7 +2026,8 @@
                     <label>Quick Actions</label>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="adjustUserBalance('${user.id}')">Adjust Balance</button>
-                        <button class="btn btn-warning" onclick="editUserKYC('${user.id}')">Edit KYC Status</button>
+                        <button class="btn btn-warning" onclick="editUserBalance('${user.id}')">Edit Balance Directly</button>
+                        <button class="btn btn-secondary" onclick="editUserKYC('${user.id}')">Edit KYC Status</button>
                         <button class="btn btn-${user.accountStatus === 'active' ? 'danger' : 'success'}" onclick="toggleUserStatus('${user.id}')">
                             ${user.accountStatus === 'active' ? 'Freeze Account' : 'Activate Account'}
                         </button>
@@ -1808,8 +2069,60 @@
             const user = users.find(u => u.id === userId);
             if (!user) return;
             
+            document.getElementById('adjust-balance-title').textContent = `Adjust Balance: ${user.id}`;
             document.getElementById('adjust-user-id').value = user.id;
+            document.getElementById('adjust-user-name').value = user.name;
+            document.getElementById('current-xoox-balance').value = `${user.xooxBalance.toFixed(4)} XOOX`;
+            document.getElementById('current-inr-balance').value = `₹${user.inrBalance.toFixed(2)}`;
+            
+            // Reset form
+            document.getElementById('adjust-asset').value = 'XOOX';
+            document.getElementById('adjust-action').value = 'add';
+            document.getElementById('adjust-amount').value = '';
+            document.getElementById('new-balance-preview').value = 'Enter amount to calculate';
+            document.getElementById('adjust-reason').value = '';
+            document.getElementById('send-notification').checked = true;
+            
             document.getElementById('adjust-balance-modal').style.display = 'flex';
+        }
+        
+        function updateBalancePreview() {
+            const userId = document.getElementById('adjust-user-id').value;
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            const asset = document.getElementById('adjust-asset').value;
+            const action = document.getElementById('adjust-action').value;
+            const amount = parseFloat(document.getElementById('adjust-amount').value) || 0;
+            
+            if (amount <= 0) {
+                document.getElementById('new-balance-preview').value = 'Enter valid amount';
+                return;
+            }
+            
+            let currentBalance, newBalance;
+            
+            if (asset === 'XOOX') {
+                currentBalance = user.xooxBalance;
+                if (action === 'add') {
+                    newBalance = currentBalance + amount;
+                } else if (action === 'subtract') {
+                    newBalance = currentBalance - amount;
+                } else if (action === 'set') {
+                    newBalance = amount;
+                }
+                document.getElementById('new-balance-preview').value = `${newBalance.toFixed(4)} XOOX`;
+            } else if (asset === 'INR') {
+                currentBalance = user.inrBalance;
+                if (action === 'add') {
+                    newBalance = currentBalance + amount;
+                } else if (action === 'subtract') {
+                    newBalance = currentBalance - amount;
+                } else if (action === 'set') {
+                    newBalance = amount;
+                }
+                document.getElementById('new-balance-preview').value = `₹${newBalance.toFixed(2)}`;
+            }
         }
         
         function applyAdjustment() {
@@ -1818,6 +2131,7 @@
             const action = document.getElementById('adjust-action').value;
             const amount = parseFloat(document.getElementById('adjust-amount').value);
             const reason = document.getElementById('adjust-reason').value;
+            const sendNotification = document.getElementById('send-notification').checked;
             
             if (!userId || isNaN(amount) || amount <= 0) {
                 alert('Please enter a valid amount');
@@ -1831,47 +2145,56 @@
             }
             
             let logMessage = '';
+            let oldBalance, newBalance;
             
             if (asset === 'XOOX') {
-                if (action === 'deposit') {
+                oldBalance = user.xooxBalance;
+                if (action === 'add') {
                     user.xooxBalance += amount;
+                    newBalance = user.xooxBalance;
                     logMessage = `Admin deposited ${amount.toFixed(4)} XOOX to user ${userId}`;
                     
                     // Update exchange balance
                     exchangeBalanceXOOX += amount;
-                } else if (action === 'withdraw') {
+                } else if (action === 'subtract') {
                     if (user.xooxBalance < amount) {
                         alert('Insufficient XOOX balance');
                         return;
                     }
                     user.xooxBalance -= amount;
+                    newBalance = user.xooxBalance;
                     logMessage = `Admin withdrew ${amount.toFixed(4)} XOOX from user ${userId}`;
                     
                     // Update exchange balance
                     exchangeBalanceXOOX -= amount;
                 } else if (action === 'set') {
-                    logMessage = `Admin set XOOX balance from ${user.xooxBalance.toFixed(4)} to ${amount.toFixed(4)} for user ${userId}`;
+                    newBalance = amount;
+                    logMessage = `Admin set XOOX balance from ${oldBalance.toFixed(4)} to ${amount.toFixed(4)} for user ${userId}`;
                     user.xooxBalance = amount;
                 }
             } else if (asset === 'INR') {
-                if (action === 'deposit') {
+                oldBalance = user.inrBalance;
+                if (action === 'add') {
                     user.inrBalance += amount;
+                    newBalance = user.inrBalance;
                     logMessage = `Admin deposited ₹${amount.toFixed(2)} to user ${userId}`;
                     
                     // Update exchange balance
                     exchangeBalanceINR += amount;
-                } else if (action === 'withdraw') {
+                } else if (action === 'subtract') {
                     if (user.inrBalance < amount) {
                         alert('Insufficient INR balance');
                         return;
                     }
                     user.inrBalance -= amount;
+                    newBalance = user.inrBalance;
                     logMessage = `Admin withdrew ₹${amount.toFixed(2)} from user ${userId}`;
                     
                     // Update exchange balance
                     exchangeBalanceINR -= amount;
                 } else if (action === 'set') {
-                    logMessage = `Admin set INR balance from ₹${user.inrBalance.toFixed(2)} to ₹${amount.toFixed(2)} for user ${userId}`;
+                    newBalance = amount;
+                    logMessage = `Admin set INR balance from ₹${oldBalance.toFixed(2)} to ₹${amount.toFixed(2)} for user ${userId}`;
                     user.inrBalance = amount;
                 }
             }
@@ -1915,8 +2238,135 @@
                 details: logMessage
             });
             
-            alert(`Balance adjusted successfully! Transaction ID: ${txId}`);
+            // Simulate notification
+            if (sendNotification) {
+                console.log(`Notification sent to user ${userId}: Your ${asset} balance was adjusted by admin. New balance: ${newBalance}`);
+            }
+            
+            alert(`Balance adjusted successfully!\n\nTransaction ID: ${txId}\n${logMessage}\n\nUser notified: ${sendNotification ? 'Yes' : 'No'}`);
             closeModal('adjust-balance-modal');
+            updateAllDisplays();
+        }
+        
+        function editUserBalance(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('edit-balance-title').textContent = `Edit Balance: ${user.id}`;
+            document.getElementById('edit-user-id').value = user.id;
+            document.getElementById('edit-user-name').value = user.name;
+            document.getElementById('edit-xoox-balance').value = user.xooxBalance;
+            document.getElementById('edit-inr-balance').value = user.inrBalance;
+            document.getElementById('edit-reason').value = '';
+            
+            document.getElementById('edit-balance-modal').style.display = 'flex';
+        }
+        
+        function setXooxBalance() {
+            const userId = document.getElementById('edit-user-id').value;
+            const newBalance = parseFloat(document.getElementById('edit-xoox-balance').value);
+            
+            if (isNaN(newBalance) || newBalance < 0) {
+                alert('Please enter a valid XOOX balance');
+                return;
+            }
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            user.xooxBalance = newBalance;
+            alert(`XOOX balance set to ${newBalance.toFixed(4)}`);
+        }
+        
+        function setInrBalance() {
+            const userId = document.getElementById('edit-user-id').value;
+            const newBalance = parseFloat(document.getElementById('edit-inr-balance').value);
+            
+            if (isNaN(newBalance) || newBalance < 0) {
+                alert('Please enter a valid INR balance');
+                return;
+            }
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            user.inrBalance = newBalance;
+            alert(`INR balance set to ₹${newBalance.toFixed(2)}`);
+        }
+        
+        function quickAdjust(asset, action, amount) {
+            const userId = document.getElementById('edit-user-id').value;
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            let oldBalance, newBalance;
+            
+            if (asset === 'XOOX') {
+                oldBalance = user.xooxBalance;
+                if (action === 'add') {
+                    user.xooxBalance += amount;
+                } else if (action === 'subtract') {
+                    if (user.xooxBalance >= amount) {
+                        user.xooxBalance -= amount;
+                    } else {
+                        alert('Insufficient XOOX balance');
+                        return;
+                    }
+                }
+                newBalance = user.xooxBalance;
+                document.getElementById('edit-xoox-balance').value = newBalance;
+            } else if (asset === 'INR') {
+                oldBalance = user.inrBalance;
+                if (action === 'add') {
+                    user.inrBalance += amount;
+                } else if (action === 'subtract') {
+                    if (user.inrBalance >= amount) {
+                        user.inrBalance -= amount;
+                    } else {
+                        alert('Insufficient INR balance');
+                        return;
+                    }
+                }
+                newBalance = user.inrBalance;
+                document.getElementById('edit-inr-balance').value = newBalance;
+            }
+            
+            alert(`${action === 'add' ? 'Added' : 'Subtracted'} ${amount} ${asset}.\nOld: ${oldBalance}\nNew: ${newBalance}`);
+        }
+        
+        function saveAllBalanceChanges() {
+            const userId = document.getElementById('edit-user-id').value;
+            const reason = document.getElementById('edit-reason').value;
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            // Log the changes
+            const logMessage = `Admin directly edited balances for user ${userId}. ${reason ? `Reason: ${reason}` : ''}`;
+            
+            // Add activity log
+            activityLogs.push({
+                timestamp: new Date().toISOString(),
+                userId: userId,
+                action: 'Balance Edited',
+                details: logMessage,
+                amount: 0
+            });
+            
+            // Add security log
+            securityLogs.push({
+                id: `SEC-${securityLogs.length + 2000}`,
+                timestamp: new Date().toISOString(),
+                eventType: 'balance_edit',
+                userId: userId,
+                ipAddress: 'ADMIN',
+                location: 'Admin Panel',
+                status: 'success',
+                details: logMessage
+            });
+            
+            alert(`Balance changes saved for user ${userId}!`);
+            closeModal('edit-balance-modal');
             updateAllDisplays();
         }
         
@@ -2008,6 +2458,8 @@
             alert(`Showing transactions for user ${userId}\n\nIn a real application, this would filter the transactions table.`);
             // Switch to transactions tab and filter
             document.querySelector('[data-tab="transactions"]').click();
+            document.getElementById('tx-search').value = userId;
+            searchTransactions();
         }
         
         function createNewUser() {
@@ -2292,85 +2744,6 @@
             alert(`Order placed successfully!\nOrder ID: ${orderId}\n${type.toUpperCase()} ${amount.toFixed(4)} XOOX at ₹${price.toFixed(2)}\nTotal: ₹${total.toFixed(2)}`);
             closeModal('place-order-modal');
             updateAllDisplays();
-            
-            // If market order, try to match immediately
-            if (execution === 'market') {
-                setTimeout(() => executeMarketOrder(orderId), 1000);
-            }
-        }
-        
-        function executeMarketOrder(orderId) {
-            const order = orders.find(o => o.id === orderId && o.status === 'open');
-            if (!order) return;
-            
-            // Find matching orders
-            const matchingOrders = orders.filter(o => 
-                o.id !== orderId && 
-                o.status === 'open' && 
-                o.type !== order.type &&
-                ((order.type === 'buy' && o.price <= order.price) || 
-                 (order.type === 'sell' && o.price >= order.price))
-            );
-            
-            if (matchingOrders.length > 0) {
-                // Execute with first matching order
-                const match = matchingOrders[0];
-                const tradePrice = match.price;
-                const tradeAmount = Math.min(order.amount - order.filled, match.amount - match.filled);
-                const tradeTotal = tradePrice * tradeAmount;
-                const fee = tradeTotal * tradingFee / 100;
-                
-                // Create trade
-                const tradeId = `TRD-${nextTradeId++}`;
-                trades.push({
-                    id: tradeId,
-                    buyerId: order.type === 'buy' ? order.userId : match.userId,
-                    sellerId: order.type === 'sell' ? order.userId : match.userId,
-                    price: tradePrice,
-                    amount: tradeAmount,
-                    total: tradeTotal,
-                    fee: fee,
-                    timestamp: new Date().toISOString()
-                });
-                
-                // Update orders
-                order.filled += tradeAmount;
-                match.filled += tradeAmount;
-                
-                if (order.filled >= order.amount) order.status = 'filled';
-                if (match.filled >= match.amount) match.status = 'filled';
-                
-                // Update user balances
-                const buyer = users.find(u => u.id === (order.type === 'buy' ? order.userId : match.userId));
-                const seller = users.find(u => u.id === (order.type === 'sell' ? order.userId : match.userId));
-                
-                if (buyer && seller) {
-                    // Buyer gets XOOX, pays INR
-                    buyer.xooxBalance += tradeAmount;
-                    buyer.inrBalance -= tradeTotal;
-                    
-                    // Seller gets INR, loses XOOX
-                    seller.inrBalance += (tradeTotal - fee);
-                    seller.xooxBalance -= tradeAmount;
-                    
-                    // Exchange collects fee
-                    exchangeBalanceINR += fee;
-                    
-                    // Add activity logs
-                    [buyer.id, seller.id].forEach(uid => {
-                        activityLogs.push({
-                            timestamp: new Date().toISOString(),
-                            userId: uid,
-                            action: 'Trade Executed',
-                            details: `Market trade: ${tradeAmount.toFixed(4)} XOOX at ₹${tradePrice.toFixed(2)}`,
-                            amount: tradeTotal
-                        });
-                    });
-                }
-                
-                updateAllDisplays();
-                alert(`Market order ${orderId} partially filled! Trade ID: ${tradeId}`);
-            }
         }
         
         function calculateOrderTotal() {
@@ -2648,18 +3021,26 @@
                     const tabId = this.getAttribute('data-tab');
                     document.getElementById(tabId).classList.add('active');
                     document.getElementById('page-title').textContent = this.querySelector('span').textContent;
-                    
-                    const firstSubtab = document.querySelector(`#${tabId} .tab`);
-                    if (firstSubtab) firstSubtab.classList.add('active');
                 });
             });
             
-            // Subtabs
-            document.querySelectorAll('.tab').forEach(tab => {
+            // Users subtabs
+            document.querySelectorAll('#users .tab').forEach(tab => {
                 tab.addEventListener('click', function() {
-                    const parentTab = this.closest('.tab-content').id;
-                    document.querySelectorAll(`#${parentTab} .tab`).forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#users .tab').forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
+                    currentUsersSubtab = this.getAttribute('data-subtab');
+                    updateUsersTable();
+                });
+            });
+            
+            // Transactions subtabs
+            document.querySelectorAll('#transactions .tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('#transactions .tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTransactionsSubtab = this.getAttribute('data-subtab');
+                    updateTransactionsTable();
                 });
             });
             
@@ -2682,6 +3063,13 @@
             document.getElementById('create-user-btn').addEventListener('click', createNewUser);
             
             document.getElementById('apply-adjustment-btn').addEventListener('click', applyAdjustment);
+            
+            // Update balance preview when adjustment inputs change
+            document.getElementById('adjust-asset').addEventListener('change', updateBalancePreview);
+            document.getElementById('adjust-action').addEventListener('change', updateBalancePreview);
+            document.getElementById('adjust-amount').addEventListener('input', updateBalancePreview);
+            
+            document.getElementById('save-balance-btn').addEventListener('click', saveAllBalanceChanges);
             
             document.getElementById('send-broadcast-btn').addEventListener('click', sendBroadcast);
             
