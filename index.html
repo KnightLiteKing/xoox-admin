@@ -700,6 +700,18 @@
             color: var(--danger);
         }
         
+        /* Wallet address display */
+        .wallet-address {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            word-break: break-all;
+            margin-top: 5px;
+            color: #58a6ff;
+        }
+        
         /* Responsive */
         @media (max-width: 1200px) {
             .sidebar {
@@ -799,11 +811,11 @@
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
                 
-                <div style="margin-top: 20px; text-align: center; color: #8b949e; font-size: 12px;">
-                    <p>Crypto Exchange Admin Panel</p>
-                   <!-- <p>Username: <strong>admin</strong></p>
-                    <p>Password: <strong>Admin12345</strong></p> -->
-                </div>
+                <!--<div style="margin-top: 20px; text-align: center; color: #8b949e; font-size: 12px;">
+                    <p>Demo Credentials:</p>
+                    <p>Username: <strong>admin</strong></p>
+                    <p>Password: <strong>Admin12345</strong></p>
+                </div> -->
             </form>
         </div>
     </div>
@@ -945,7 +957,7 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3>Recent Activity</h3>
-                    <input type="text" class="search-box" placeholder="Search activity..." id="activity-search">
+                    <input type="text" class="search-box" placeholder="Search activity..." id="activity-search" onkeyup="searchActivity()">
                 </div>
                 <table id="activity-table">
                     <thead>
@@ -1026,7 +1038,7 @@
                 <div class="table-header">
                     <h3 id="users-table-title">User Management</h3>
                     <div>
-                        <input type="text" class="search-box" placeholder="Search users..." id="user-search">
+                        <input type="text" class="search-box" placeholder="Search users..." id="user-search" onkeyup="searchUsers()">
                         <button class="btn btn-primary" id="add-user-btn"><i class="fas fa-plus"></i> Add User</button>
                         <button class="btn btn-secondary" id="export-users-btn"><i class="fas fa-download"></i> Export</button>
                     </div>
@@ -1067,8 +1079,8 @@
                 <div class="table-header">
                     <h3 id="transactions-table-title">Transaction History</h3>
                     <div>
-                        <input type="text" class="search-box" placeholder="Search TX ID or User..." id="tx-search">
-                        <select class="form-control" style="width: 150px; display: inline-block; margin-left: 10px;" id="tx-type-filter">
+                        <input type="text" class="search-box" placeholder="Search TX ID or User..." id="tx-search" onkeyup="searchTransactions()">
+                        <select class="form-control" style="width: 150px; display: inline-block; margin-left: 10px;" id="tx-type-filter" onchange="searchTransactions()">
                             <option value="all">All Types</option>
                             <option value="deposit">Deposit</option>
                             <option value="withdrawal">Withdrawal</option>
@@ -1125,7 +1137,7 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3>Open Orders (XOOX/INR)</h3>
-                    <button class="btn btn-primary" id="place-order-btn"><i class="fas fa-plus"></i> Place Order</button>
+                    <input type="text" class="search-box" placeholder="Search orders..." id="order-search" onkeyup="searchOrders()">
                 </div>
                 <table>
                     <thead>
@@ -1149,7 +1161,7 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3>Recent Trades (XOOX/INR)</h3>
-                    <button class="btn btn-secondary" id="refresh-trades"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    <input type="text" class="search-box" placeholder="Search trades..." id="trade-search" onkeyup="searchTrades()">
                 </div>
                 <table>
                     <thead>
@@ -1175,7 +1187,7 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3>Security Logs</h3>
-                    <button class="btn btn-danger" id="lockdown-btn"><i class="fas fa-lock"></i> Emergency Lockdown</button>
+                    <input type="text" class="search-box" placeholder="Search security logs..." id="security-search" onkeyup="searchSecurityLogs()">
                 </div>
                 <table>
                     <thead>
@@ -1198,7 +1210,7 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3>Active Sessions</h3>
-                    <button class="btn btn-warning" id="terminate-all-btn"><i class="fas fa-sign-out-alt"></i> Terminate All</button>
+                    <input type="text" class="search-box" placeholder="Search sessions..." id="session-search" onkeyup="searchSessions()">
                 </div>
                 <table>
                     <thead>
@@ -1901,6 +1913,20 @@
             feeCollection = [];
             activityLogs = [];
             
+            // Wallet addresses for XOOX withdrawals
+            const walletAddresses = [
+                '0x742d35Cc6634C0532925a3b844Bc9e8E3a2C7a1B',
+                '0x8d12A197dC1C2f0c8C8bC4a2b4Ff7f7a5D8f5C3E',
+                '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed',
+                '0x6f46CF5569aEFa1eD6C048f6B731eBc2B7f2C8d2',
+                '0x8eB1b7D7c8C7f5C5aDf9D7a7F3B9f6B4e3C2d1A0',
+                '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2',
+                '0x4E83362442B8d1beC281594cEa3050c8EB01311C',
+                '0x7d577a597BcC4b2D5C8C8B5F5d5c5b4D5c3B2A1F',
+                '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE',
+                '0x2a5c7D5b5F5A5d5c5B5D5c5A5b5C5d5E5f5A5B5C'
+            ];
+            
             // Initialize 100 unique Indian names
             const uniqueIndianNames = [
                 // Male Names
@@ -1975,6 +2001,7 @@
                 const type = txTypes[Math.floor(Math.random() * txTypes.length)];
                 let asset = assets[Math.floor(Math.random() * assets.length)];
                 let amount, details;
+                let walletAddress = null;
                 
                 if (type === 'deposit') {
                     if (asset === 'INR') {
@@ -1983,6 +2010,7 @@
                     } else {
                         amount = parseFloat((Math.random() * 100).toFixed(4));
                         details = 'XOOX Deposit from External Wallet';
+                        walletAddress = walletAddresses[Math.floor(Math.random() * walletAddresses.length)];
                     }
                 } else if (type === 'withdrawal') {
                     if (asset === 'INR') {
@@ -1991,6 +2019,7 @@
                     } else {
                         amount = parseFloat((Math.random() * 50).toFixed(4));
                         details = 'XOOX Withdrawal to External Wallet';
+                        walletAddress = walletAddresses[Math.floor(Math.random() * walletAddresses.length)];
                     }
                 } else if (type === 'trade') {
                     asset = 'XOOX';
@@ -2012,6 +2041,7 @@
                     amount: amount,
                     asset: asset,
                     details: details,
+                    walletAddress: walletAddress,
                     status: status,
                     timestamp: timestamp.toISOString(),
                     fee: parseFloat((amount * 0.001).toFixed(2))
@@ -2518,6 +2548,213 @@
             }
         }
         
+        // ==================== SEARCH FUNCTIONS ====================
+        function searchUsers() {
+            const searchTerm = document.getElementById('user-search').value.toLowerCase();
+            const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let match = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                        match = true;
+                        break;
+                    }
+                }
+                
+                if (match || searchTerm === '') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        function searchTransactions() {
+            const searchTerm = document.getElementById('tx-search').value.toLowerCase();
+            const typeFilter = document.getElementById('tx-type-filter').value;
+            const tbody = document.getElementById('transactions-table-body');
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let match = searchTerm === '';
+                let typeMatch = typeFilter === 'all';
+                
+                // Check search term
+                if (searchTerm !== '') {
+                    for (let j = 0; j < cells.length; j++) {
+                        if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                            match = true;
+                            break;
+                        }
+                    }
+                } else {
+                    match = true;
+                }
+                
+                // Check type filter
+                if (typeFilter !== 'all') {
+                    const typeCell = cells[1];
+                    if (typeCell && typeCell.textContent.toLowerCase().includes(typeFilter)) {
+                        typeMatch = true;
+                    }
+                } else {
+                    typeMatch = true;
+                }
+                
+                if (match && typeMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        function searchOrders() {
+            const searchTerm = document.getElementById('order-search').value.toLowerCase();
+            const tbody = document.getElementById('open-orders-body');
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let match = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                        match = true;
+                        break;
+                    }
+                }
+                
+                if (match || searchTerm === '') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        function searchTrades() {
+            const searchTerm = document.getElementById('trade-search').value.toLowerCase();
+            const tbody = document.getElementById('recent-trades-body');
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let match = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                        match = true;
+                        break;
+                    }
+                }
+                
+                if (match || searchTerm === '') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        function searchSecurityLogs() {
+            const searchTerm = document.getElementById('security-search').value.toLowerCase();
+            const tbody = document.getElementById('security-logs-body');
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let match = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                        match = true;
+                        break;
+                    }
+                }
+                
+                if (match || searchTerm === '') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        function searchSessions() {
+            const searchTerm = document.getElementById('session-search').value.toLowerCase();
+            const tbody = document.getElementById('active-sessions-body');
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let match = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                        match = true;
+                        break;
+                    }
+                }
+                
+                if (match || searchTerm === '') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        function searchActivity() {
+            const searchTerm = document.getElementById('activity-search').value.toLowerCase();
+            const tbody = document.getElementById('activity-body');
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let match = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                        match = true;
+                        break;
+                    }
+                }
+                
+                if (match || searchTerm === '') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
         // ==================== USER FUNCTIONS ====================
         function viewUserDetails(userId) {
             const user = users.find(u => u.id === userId);
@@ -2780,6 +3017,11 @@
             const user = users.find(u => u.id === transaction.userId) || { name: 'Unknown User' };
             const date = new Date(transaction.timestamp);
             
+            let walletInfo = '';
+            if (transaction.walletAddress) {
+                walletInfo = `\nWallet Address: ${transaction.walletAddress}`;
+            }
+            
             alert(`Transaction Details:\n\n` +
                   `ID: ${transaction.id}\n` +
                   `Type: ${transaction.type}\n` +
@@ -2787,7 +3029,8 @@
                   `Amount: ${transaction.amount} ${transaction.asset}\n` +
                   `Status: ${transaction.status}\n` +
                   `Date: ${date.toLocaleString()}\n` +
-                  `Details: ${transaction.details}\n` +
+                  `Details: ${transaction.details}` +
+                  walletInfo + `\n` +
                   `Fee: ${transaction.fee || 0} ${transaction.asset === 'INR' ? '₹' : ''}`);
         }
         
