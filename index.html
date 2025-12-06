@@ -33,6 +33,214 @@
             overflow-x: hidden;
         }
         
+        /* Login Page */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d1117 0%, #1a237e 100%);
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+        }
+        
+        .login-box {
+            background: #161b22;
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo i {
+            font-size: 50px;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+        
+        .login-logo h1 {
+            font-size: 28px;
+            color: #e6edf3;
+        }
+        
+        .login-logo p {
+            color: #8b949e;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #c9d1d9;
+            font-weight: 600;
+        }
+        
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #e6edf3;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(83, 109, 254, 0.2);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            background: #3d5afe;
+            transform: translateY(-2px);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .login-error {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        /* Loading Screen */
+        .loading-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d1117;
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .loading-logo i {
+            font-size: 60px;
+            color: var(--accent);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .loading-logo h2 {
+            font-size: 28px;
+            color: #e6edf3;
+            margin-bottom: 10px;
+        }
+        
+        .loading-logo p {
+            color: #8b949e;
+        }
+        
+        .loading-bar-container {
+            width: 80%;
+            max-width: 400px;
+            background: #0d1117;
+            border-radius: 10px;
+            padding: 3px;
+            border: 1px solid #30363d;
+            margin-top: 20px;
+        }
+        
+        .loading-bar {
+            height: 20px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 8px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .loading-text {
+            margin-top: 15px;
+            color: #8b949e;
+            font-size: 14px;
+        }
+        
+        .loading-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 80%;
+            max-width: 400px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .loading-stat {
+            padding: 10px;
+        }
+        
+        .loading-stat .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .loading-stat .label {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 5px;
+        }
+        
         /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
@@ -42,6 +250,7 @@
             position: fixed;
             height: 100vh;
             overflow-y: auto;
+            display: none;
         }
         
         .logo {
@@ -91,6 +300,7 @@
             margin-left: var(--sidebar-width);
             padding: 20px;
             width: calc(100% - var(--sidebar-width));
+            display: none;
         }
         
         .header {
@@ -471,6 +681,26 @@
             color: #ff9800;
         }
         
+        /* Logout Button */
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(211, 47, 47, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        
         /* Responsive */
         @media (max-width: 1200px) {
             .sidebar {
@@ -542,8 +772,75 @@
     </style>
 </head>
 <body>
+    <!-- Login Page -->
+    <div class="login-container" id="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <i class="fas fa-coins"></i>
+                <h1>XOOX Exchange</h1>
+                <p>Administrator Panel</p>
+            </div>
+            
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> Admin ID</label>
+                    <input type="text" id="username" placeholder="Enter admin ID" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                
+                <div class="login-error" id="login-error">
+                    <i class="fas fa-exclamation-circle"></i> Invalid credentials. Please try again.
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                
+                <div style="margin-top: 20px; text-align: center; color: #8b949e; font-size: 12px;">
+                    <p>Demo Credentials:</p>
+                    <p>Username: <strong>admin</strong></p>
+                    <p>Password: <strong>Admin12345</strong></p>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-logo">
+            <i class="fas fa-coins"></i>
+            <h2>XOOX Exchange Admin</h2>
+            <p>Loading Admin Dashboard...</p>
+        </div>
+        
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        
+        <div class="loading-text" id="loading-text">Initializing system...</div>
+        
+        <div class="loading-stats">
+            <div class="loading-stat">
+                <div class="value" id="loading-users">0</div>
+                <div class="label">Users</div>
+            </div>
+            <div class="loading-stat">
+                <div class="value" id="loading-transactions">0</div>
+                <div class="label">Transactions</div>
+            </div>
+            <div class="loading-stat">
+                <div class="value" id="loading-balance">₹0</div>
+                <div class="label">Total Balance</div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="logo">
             <i class="fas fa-coins"></i>
             <h1>XOOX Admin</h1>
@@ -594,11 +891,15 @@
                     <div style="font-size: 12px; color: #8b949e;">Super Administrator</div>
                 </div>
             </div>
+            <button class="logout-btn" id="logout-btn" style="width: 100%; margin-top: 15px;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
         </div>
     </div>
     
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content" id="main-content">
         <div class="header">
             <h2 id="page-title">XOOX Exchange Admin</h2>
             <div class="user-info">
@@ -757,7 +1058,9 @@
             <div class="tabs">
                 <div class="tab active" data-subtab="all-tx">All Transactions</div>
                 <div class="tab" data-subtab="pending">Pending Withdrawals</div>
-                <div class="tab" data-subtab="deposits">Recent Deposits</div>
+                <div class="tab" data-subtab="deposits">INR Deposits</div>
+                <div class="tab" data-subtab="xoox-deposits">XOOX Deposits</div>
+                <div class="tab" data-subtab="xoox-withdrawals">XOOX Withdrawals</div>
                 <div class="tab" data-subtab="trades">Recent Trades</div>
             </div>
             
@@ -771,6 +1074,7 @@
                             <option value="deposit">Deposit</option>
                             <option value="withdrawal">Withdrawal</option>
                             <option value="trade">Trade</option>
+                            <option value="adjustment">Adjustment</option>
                         </select>
                     </div>
                 </div>
@@ -1389,7 +1693,13 @@
     </div>
     
     <script>
-        // ==================== DATA STORAGE ====================
+        // ==================== ADMIN LOGIN SYSTEM ====================
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'Admin12345'
+        };
+        
+        let isLoggedIn = false;
         let users = [];
         let transactions = [];
         let orders = [];
@@ -1402,14 +1712,173 @@
         let nextTxId = 1000;
         let nextOrderId = 5000;
         let nextTradeId = 10000;
-        let xooxPrice = 28420.29;
-        let tradingFee = 0.10;
+        let xooxPrice = 125.50;
+        let tradingFee = 0.15;
         let exchangeBalanceXOOX = 1485250;
         let exchangeBalanceINR = 28500000;
         
         // Current view states
         let currentUsersSubtab = 'all-users';
         let currentTransactionsSubtab = 'all-tx';
+        
+        // ==================== LOGIN FUNCTIONS ====================
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('login-error');
+            
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                // Hide error if shown
+                errorElement.style.display = 'none';
+                
+                // Start login process
+                startLoginProcess();
+            } else {
+                // Show error
+                errorElement.style.display = 'block';
+                
+                // Shake animation for error
+                document.getElementById('login-form').style.animation = 'none';
+                setTimeout(() => {
+                    document.getElementById('login-form').style.animation = 'shake 0.5s';
+                }, 10);
+                
+                // Clear password field
+                document.getElementById('password').value = '';
+            }
+        }
+        
+        function startLoginProcess() {
+            // Hide login container
+            document.getElementById('login-container').style.display = 'none';
+            
+            // Show loading screen
+            document.getElementById('loading-screen').style.display = 'flex';
+            
+            // Start loading animation
+            simulateLoading();
+        }
+        
+        function simulateLoading() {
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingText = document.getElementById('loading-text');
+            const loadingUsers = document.getElementById('loading-users');
+            const loadingTransactions = document.getElementById('loading-transactions');
+            const loadingBalance = document.getElementById('loading-balance');
+            
+            let progress = 0;
+            const steps = [
+                { percent: 10, text: 'Verifying credentials...' },
+                { percent: 20, text: 'Establishing secure connection...' },
+                { percent: 35, text: 'Loading user database...' },
+                { percent: 50, text: 'Loading transaction history...' },
+                { percent: 65, text: 'Initializing trading engine...' },
+                { percent: 80, text: 'Loading security logs...' },
+                { percent: 90, text: 'Finalizing dashboard...' },
+                { percent: 100, text: 'Ready!' }
+            ];
+            
+            let stepIndex = 0;
+            
+            function updateLoading() {
+                if (stepIndex < steps.length) {
+                    const step = steps[stepIndex];
+                    progress = step.percent;
+                    
+                    loadingBar.style.width = progress + '%';
+                    loadingText.textContent = step.text;
+                    
+                    // Update stats
+                    if (progress >= 35) {
+                        loadingUsers.textContent = '100';
+                    }
+                    if (progress >= 50) {
+                        loadingTransactions.textContent = '1,250';
+                    }
+                    if (progress >= 80) {
+                        loadingBalance.textContent = '₹18.64 Cr';
+                    }
+                    
+                    stepIndex++;
+                    
+                    // Random interval between 300-800ms for realistic loading
+                    const delay = 300 + Math.random() * 500;
+                    
+                    if (progress < 100) {
+                        setTimeout(updateLoading, delay);
+                    } else {
+                        // Loading complete
+                        setTimeout(completeLogin, 500);
+                    }
+                }
+            }
+            
+            // Start loading animation
+            updateLoading();
+        }
+        
+        function completeLogin() {
+            // Initialize data
+            initializeData();
+            
+            // Hide loading screen
+            document.getElementById('loading-screen').style.display = 'none';
+            
+            // Show admin panel
+            document.getElementById('sidebar').style.display = 'block';
+            document.getElementById('main-content').style.display = 'block';
+            
+            // Set login flag
+            isLoggedIn = true;
+            
+            // Add login security log
+            securityLogs.push({
+                id: `SEC-${securityLogs.length + 2000}`,
+                timestamp: new Date().toISOString(),
+                eventType: 'admin_login',
+                userId: 'ADMIN',
+                ipAddress: '127.0.0.1',
+                location: 'Localhost',
+                status: 'success',
+                details: 'Admin login successful'
+            });
+            
+            // Update security logs display
+            updateSecurityLogs();
+        }
+        
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Add logout security log
+                securityLogs.push({
+                    id: `SEC-${securityLogs.length + 2000}`,
+                    timestamp: new Date().toISOString(),
+                    eventType: 'admin_logout',
+                    userId: 'ADMIN',
+                    ipAddress: '127.0.0.1',
+                    location: 'Localhost',
+                    status: 'success',
+                    details: 'Admin logout'
+                });
+                
+                // Hide admin panel
+                document.getElementById('sidebar').style.display = 'none';
+                document.getElementById('main-content').style.display = 'none';
+                
+                // Show login container
+                document.getElementById('login-container').style.display = 'flex';
+                
+                // Reset login flag
+                isLoggedIn = false;
+                
+                // Clear form
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('login-error').style.display = 'none';
+            }
+        }
         
         // ==================== INITIAL DATA SETUP ====================
         function initializeData() {
@@ -1477,27 +1946,41 @@
             }
             nextUserId = 101;
             
-            // Initialize transactions
-            const txTypes = ['deposit', 'withdrawal', 'trade'];
+            // Initialize transactions with XOOX deposits and withdrawals
+            const txTypes = ['deposit', 'withdrawal', 'trade', 'adjustment'];
             const txStatuses = ['completed', 'pending', 'failed'];
+            const assets = ['INR', 'XOOX'];
             
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 100; i++) {
                 const userId = Math.floor(Math.random() * 100) + 1;
                 const type = txTypes[Math.floor(Math.random() * txTypes.length)];
-                let amount, details, asset;
+                const asset = assets[Math.floor(Math.random() * assets.length)];
+                let amount, details;
                 
                 if (type === 'deposit') {
-                    asset = 'INR';
-                    amount = parseFloat((Math.random() * 100000).toFixed(2));
-                    details = 'INR Deposit via UPI/Bank Transfer';
+                    if (asset === 'INR') {
+                        amount = parseFloat((Math.random() * 100000).toFixed(2));
+                        details = 'INR Deposit via UPI/Bank Transfer';
+                    } else {
+                        amount = parseFloat((Math.random() * 100).toFixed(4));
+                        details = 'XOOX Deposit from External Wallet';
+                    }
                 } else if (type === 'withdrawal') {
-                    asset = 'INR';
-                    amount = parseFloat((Math.random() * 50000).toFixed(2));
-                    details = 'INR Withdrawal to Bank Account';
-                } else {
+                    if (asset === 'INR') {
+                        amount = parseFloat((Math.random() * 50000).toFixed(2));
+                        details = 'INR Withdrawal to Bank Account';
+                    } else {
+                        amount = parseFloat((Math.random() * 50).toFixed(4));
+                        details = 'XOOX Withdrawal to External Wallet';
+                    }
+                } else if (type === 'trade') {
                     asset = 'XOOX';
                     amount = parseFloat((Math.random() * 1000).toFixed(4));
                     details = 'XOOX/INR Trade Execution';
+                } else {
+                    asset = Math.random() > 0.5 ? 'XOOX' : 'INR';
+                    amount = parseFloat((Math.random() * 500).toFixed(asset === 'INR' ? 2 : 4));
+                    details = 'Admin Balance Adjustment';
                 }
                 
                 const status = txStatuses[Math.floor(Math.random() * txStatuses.length)];
@@ -1515,7 +1998,7 @@
                     fee: parseFloat((amount * 0.001).toFixed(2))
                 });
             }
-            nextTxId = 1050;
+            nextTxId = 1100;
             
             // Initialize orders
             for (let i = 0; i < 15; i++) {
@@ -1754,12 +2237,28 @@
                     document.getElementById('transactions-table-title').textContent = 'All Transactions';
                     break;
                 case 'pending':
-                    filteredTransactions = transactions.filter(tx => tx.status === 'pending' && tx.type === 'withdrawal');
+                    filteredTransactions = transactions.filter(tx => 
+                        tx.status === 'pending' && tx.type === 'withdrawal'
+                    );
                     document.getElementById('transactions-table-title').textContent = 'Pending Withdrawals';
                     break;
                 case 'deposits':
-                    filteredTransactions = transactions.filter(tx => tx.type === 'deposit' && tx.status === 'completed');
-                    document.getElementById('transactions-table-title').textContent = 'Recent Deposits';
+                    filteredTransactions = transactions.filter(tx => 
+                        tx.type === 'deposit' && tx.asset === 'INR'
+                    );
+                    document.getElementById('transactions-table-title').textContent = 'INR Deposits';
+                    break;
+                case 'xoox-deposits':
+                    filteredTransactions = transactions.filter(tx => 
+                        tx.type === 'deposit' && tx.asset === 'XOOX'
+                    );
+                    document.getElementById('transactions-table-title').textContent = 'XOOX Deposits';
+                    break;
+                case 'xoox-withdrawals':
+                    filteredTransactions = transactions.filter(tx => 
+                        tx.type === 'withdrawal' && tx.asset === 'XOOX'
+                    );
+                    document.getElementById('transactions-table-title').textContent = 'XOOX Withdrawals';
                     break;
                 case 'trades':
                     // Convert trades to transaction format for display
@@ -2579,13 +3078,16 @@
                     tx.status = 'completed';
                     
                     // If withdrawal, update user balance
-                    if (tx.type === 'withdrawal' && tx.asset === 'INR') {
+                    if (tx.type === 'withdrawal') {
                         const user = users.find(u => u.id === tx.userId);
                         if (user) {
-                            user.inrBalance -= tx.amount;
-                            
-                            // Update exchange balance
-                            exchangeBalanceINR -= tx.amount;
+                            if (tx.asset === 'INR') {
+                                user.inrBalance -= tx.amount;
+                                exchangeBalanceINR -= tx.amount;
+                            } else if (tx.asset === 'XOOX') {
+                                user.xooxBalance -= tx.amount;
+                                exchangeBalanceXOOX -= tx.amount;
+                            }
                         }
                     }
                     
@@ -2594,8 +3096,8 @@
                         timestamp: new Date().toISOString(),
                         userId: tx.userId,
                         action: 'Withdrawal Approved',
-                        details: `Withdrawal of ₹${tx.amount.toFixed(2)} approved by admin`,
-                        amount: tx.amount
+                        details: `Withdrawal of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount.toFixed(tx.asset === 'INR' ? 2 : 4)} ${tx.asset} approved by admin`,
+                        amount: tx.asset === 'INR' ? tx.amount : tx.amount * xooxPrice
                     });
                     
                     alert(`Transaction ${txId} approved!`);
@@ -2609,8 +3111,8 @@
                         timestamp: new Date().toISOString(),
                         userId: tx.userId,
                         action: 'Withdrawal Rejected',
-                        details: `Withdrawal of ₹${tx.amount.toFixed(2)} rejected by admin`,
-                        amount: tx.amount
+                        details: `Withdrawal of ${tx.asset === 'INR' ? '₹' : ''}${tx.amount.toFixed(tx.asset === 'INR' ? 2 : 4)} ${tx.asset} rejected by admin`,
+                        amount: tx.asset === 'INR' ? tx.amount : tx.amount * xooxPrice
                     });
                     
                     alert(`Transaction ${txId} rejected!`);
@@ -3006,12 +3508,27 @@
         
         // ==================== EVENT LISTENERS ====================
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize data
-            initializeData();
+            // Add shake animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                    20%, 40%, 60%, 80% { transform: translateX(5px); }
+                }
+            `;
+            document.head.appendChild(style);
             
-            // Tab switching
+            // Login form submission
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            
+            // Tab switching (only when logged in)
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.addEventListener('click', function(e) {
+                    if (!isLoggedIn) return;
                     e.preventDefault();
                     
                     document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
@@ -3051,12 +3568,14 @@
                 }
             }
             
-            // Button event listeners
+            // Button event listeners (only work when logged in)
             document.getElementById('broadcast-btn').addEventListener('click', () => {
+                if (!isLoggedIn) return;
                 document.getElementById('broadcast-modal').style.display = 'flex';
             });
             
             document.getElementById('add-user-btn').addEventListener('click', () => {
+                if (!isLoggedIn) return;
                 document.getElementById('add-user-modal').style.display = 'flex';
             });
             
@@ -3074,6 +3593,7 @@
             document.getElementById('send-broadcast-btn').addEventListener('click', sendBroadcast);
             
             document.getElementById('place-order-btn').addEventListener('click', () => {
+                if (!isLoggedIn) return;
                 document.getElementById('place-order-modal').style.display = 'flex';
             });
             
@@ -3134,8 +3654,10 @@
                 alert('Analytics Dashboard\n\nIn a real application, this would open advanced analytics dashboard.');
             });
             
-            // Simulate real-time updates
+            // Simulate real-time updates (only when logged in)
             setInterval(() => {
+                if (!isLoggedIn) return;
+                
                 // Randomly update XOOX price
                 const change = (Math.random() - 0.5) * 0.02; // ±1%
                 xooxPrice *= (1 + change);
