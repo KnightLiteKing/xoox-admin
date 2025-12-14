@@ -327,7 +327,7 @@
             height: 45px;
             border-radius: 50%;
             background: var(--secondary);
-            display: flex;
+            display = flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
@@ -639,7 +639,7 @@
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom = 8px;
             color: #c9d1d9;
         }
         
@@ -811,11 +811,11 @@
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
                 
-                <!--<div style="margin-top: 20px; text-align: center; color: #8b949e; font-size: 12px;">
+                <div style="margin-top: 20px; text-align: center; color: #8b949e; font-size: 12px;">
                     <p>Demo Credentials:</p>
                     <p>Username: <strong>admin</strong></p>
                     <p>Password: <strong>Admin12345</strong></p>
-                </div> -->
+                </div>
             </form>
         </div>
     </div>
@@ -1431,6 +1431,50 @@
             <div class="modal-body">
                 <div id="user-details-content">
                     <!-- User details will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="edit-kyc-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="edit-kyc-title">Edit KYC Status</h3>
+                <button class="close-modal" onclick="closeModal('edit-kyc-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" class="form-control" id="edit-kyc-user-id" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>User Name</label>
+                    <input type="text" class="form-control" id="edit-kyc-user-name" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Current KYC Status</label>
+                    <input type="text" class="form-control" id="current-kyc-status" readonly style="background: #1a237e; color: white;">
+                </div>
+                
+                <div class="form-group">
+                    <label>New KYC Status</label>
+                    <select class="form-control" id="new-kyc-status">
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Reason for Change</label>
+                    <textarea class="form-control" id="kyc-change-reason" placeholder="Enter reason for KYC status change (optional)" rows="3"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('edit-kyc-modal')">Cancel</button>
+                    <button class="btn btn-primary" style="flex: 2;" id="update-kyc-btn">Update KYC Status</button>
                 </div>
             </div>
         </div>
@@ -2803,6 +2847,20 @@
             openModal('user-details-modal');
         }
         
+        function editUserKYC(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('edit-kyc-title').textContent = `Edit KYC Status: ${user.id}`;
+            document.getElementById('edit-kyc-user-id').value = user.id;
+            document.getElementById('edit-kyc-user-name').value = user.name;
+            document.getElementById('current-kyc-status').value = user.kycStatus.charAt(0).toUpperCase() + user.kycStatus.slice(1);
+            document.getElementById('new-kyc-status').value = user.kycStatus;
+            document.getElementById('kyc-change-reason').value = '';
+            
+            openModal('edit-kyc-modal');
+        }
+        
         function adjustUserBalance(userId) {
             const user = users.find(u => u.id === userId);
             if (!user) return;
@@ -3193,6 +3251,43 @@
             const createUserBtn = document.getElementById('create-user-btn');
             if (createUserBtn) {
                 createUserBtn.addEventListener('click', createNewUser);
+            }
+            
+            // Update KYC button
+            const updateKycBtn = document.getElementById('update-kyc-btn');
+            if (updateKycBtn) {
+                updateKycBtn.addEventListener('click', function() {
+                    const userId = document.getElementById('edit-kyc-user-id').value;
+                    const newKycStatus = document.getElementById('new-kyc-status').value;
+                    const reason = document.getElementById('kyc-change-reason').value;
+                    
+                    const user = users.find(u => u.id === userId);
+                    if (!user) return;
+                    
+                    const oldStatus = user.kycStatus;
+                    user.kycStatus = newKycStatus;
+                    
+                    // Add security log
+                    securityLogs.push({
+                        id: `SEC-${securityLogs.length + 2000}`,
+                        timestamp: new Date().toISOString(),
+                        eventType: 'kyc_status_change',
+                        userId: userId,
+                        ipAddress: '127.0.0.1',
+                        location: 'Admin Panel',
+                        status: 'success',
+                        details: `KYC status changed from ${oldStatus} to ${newKycStatus}. Reason: ${reason || 'Not specified'}`
+                    });
+                    
+                    // Close modal
+                    closeModal('edit-kyc-modal');
+                    
+                    // Update displays
+                    updateUsersTable();
+                    updateSecurityLogs();
+                    
+                    alert(`KYC status updated for user ${userId} from ${oldStatus} to ${newKycStatus}.`);
+                });
             }
             
             // Broadcast button
